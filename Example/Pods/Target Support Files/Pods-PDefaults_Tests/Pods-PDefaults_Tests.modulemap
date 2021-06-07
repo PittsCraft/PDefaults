@@ -1,0 +1,6 @@
+framework module Pods_PDefaults_Tests {
+  umbrella header "Pods-PDefaults_Tests-umbrella.h"
+
+  export *
+  module * { export * }
+}

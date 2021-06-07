@@ -1,0 +1,16 @@
+PODS:
+  - PDefaults (0.1.0)
+
+DEPENDENCIES:
+  - PDefaults (from `../`)
+
+EXTERNAL SOURCES:
+  PDefaults:
+    :path: "../"
+
+SPEC CHECKSUMS:
+  PDefaults: 1fd0322e56f1d43ea0a614be9a0c49990079600f
+
+PODFILE CHECKSUM: 4e331ffbc228fdfe6f75d4c91d860fa94107859b
+
+COCOAPODS: 1.10.1
