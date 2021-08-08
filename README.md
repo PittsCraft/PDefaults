@@ -4,11 +4,9 @@
 [![License](https://img.shields.io/cocoapods/l/PDefaults.svg?style=flat)](https://cocoapods.org/pods/PDefaults)
 [![Platform](https://img.shields.io/cocoapods/p/PDefaults.svg?style=flat)](https://cocoapods.org/pods/PDefaults)
 
-Provides concise and straightforward [UserDefaults](https://developer.apple.com/documentation/foundation/userdefaults) storage with Combine publishing capability.
+Provides concises and SwiftUI friendly [UserDefaults](https://developer.apple.com/documentation/foundation/userdefaults) storage with Combine publishing capability.
 
 All regular `UserDefaults` compatible types and `Codable`types are supported (optional or not). 
-
-**WARNING** Not published yet, still working on tests coverage.
 
 ## Use
 
