@@ -9,6 +9,10 @@
 /* Begin PBXBuildFile section */
 		22E45E84630B4E0A30AE9E3FCC80DCAD /* Pods-PDefaults_Tests-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = 43795D01EEB79E21086F15960B794CC9 /* Pods-PDefaults_Tests-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		27EBDEE627777F4BE5FC8F7300A48251 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 73010CC983E3809BECEE5348DA1BB8C6 /* Foundation.framework */; };
+		43A1DACE280CBD27000304EC /* OptionalType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43A1DACA280CBD27000304EC /* OptionalType.swift */; };
+		43A1DACF280CBD27000304EC /* Decodable+PDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43A1DACB280CBD27000304EC /* Decodable+PDefaults.swift */; };
+		43A1DAD0280CBD27000304EC /* Encodable+PDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43A1DACC280CBD27000304EC /* Encodable+PDefaults.swift */; };
+		43A1DAD1280CBD27000304EC /* UserDefaultsStorable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43A1DACD280CBD27000304EC /* UserDefaultsStorable.swift */; };
 		5C0E8E8B9CC72EAC9BAC99B0291619A2 /* PDefaults-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = 0DBCEF27B4EC02EA42CE560C1B53AB11 /* PDefaults-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		6CE9B88ACA8036DC6222463EF0323D22 /* Pods-PDefaults_Tests-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = 33EAFDF46D62FB947C3010FD2229556B /* Pods-PDefaults_Tests-dummy.m */; };
 		7BF19B279B3CA21A8A07E6A8DCDA0651 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 73010CC983E3809BECEE5348DA1BB8C6 /* Foundation.framework */; };
@@ -36,6 +40,10 @@
 		3A4F532B78E96AA04CB059337EE7E001 /* PDefaults-prefix.pch */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "PDefaults-prefix.pch"; sourceTree = "<group>"; };
 		3B4A91F2B753F9C1E5F7B1697355656A /* PDefaults-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "PDefaults-dummy.m"; sourceTree = "<group>"; };
 		43795D01EEB79E21086F15960B794CC9 /* Pods-PDefaults_Tests-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "Pods-PDefaults_Tests-umbrella.h"; sourceTree = "<group>"; };
+		43A1DACA280CBD27000304EC /* OptionalType.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = OptionalType.swift; path = PDefaults/Classes/OptionalType.swift; sourceTree = "<group>"; };
+		43A1DACB280CBD27000304EC /* Decodable+PDefaults.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Decodable+PDefaults.swift"; path = "PDefaults/Classes/Decodable+PDefaults.swift"; sourceTree = "<group>"; };
+		43A1DACC280CBD27000304EC /* Encodable+PDefaults.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Encodable+PDefaults.swift"; path = "PDefaults/Classes/Encodable+PDefaults.swift"; sourceTree = "<group>"; };
+		43A1DACD280CBD27000304EC /* UserDefaultsStorable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = UserDefaultsStorable.swift; path = PDefaults/Classes/UserDefaultsStorable.swift; sourceTree = "<group>"; };
 		4768320CC9972263BA53E99B2D9A3390 /* Pods-PDefaults_Tests-acknowledgements.markdown */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = "Pods-PDefaults_Tests-acknowledgements.markdown"; sourceTree = "<group>"; };
 		6879BE234574FD36987526823426135A /* PDefaults.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = PDefaults.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		6F28CD9A6720CB5230DE89FDB4600F33 /* Pods-PDefaults_Tests-acknowledgements.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-PDefaults_Tests-acknowledgements.plist"; sourceTree = "<group>"; };
@@ -119,7 +127,11 @@
 		834DC1F904BA52A8CB1C56FFE5FCC11E /* PDefaults */ = {
 			isa = PBXGroup;
 			children = (
+				43A1DACB280CBD27000304EC /* Decodable+PDefaults.swift */,
+				43A1DACC280CBD27000304EC /* Encodable+PDefaults.swift */,
+				43A1DACA280CBD27000304EC /* OptionalType.swift */,
 				2E6783545F08C642F13639BD2B11E120 /* PDefaults.swift */,
+				43A1DACD280CBD27000304EC /* UserDefaultsStorable.swift */,
 				7FDEB0FA52BA62C85B90CA2FED69C396 /* Pod */,
 				DDD8CBCE782E18459789D92E3EA1BDAB /* Support Files */,
 			);
@@ -295,8 +307,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				43A1DACE280CBD27000304EC /* OptionalType.swift in Sources */,
 				92D88A128576CBE84A11A54AD245E9F0 /* PDefaults-dummy.m in Sources */,
+				43A1DACF280CBD27000304EC /* Decodable+PDefaults.swift in Sources */,
 				CA759C1317B9944AA04F18136B770A46 /* PDefaults.swift in Sources */,
+				43A1DAD1280CBD27000304EC /* UserDefaultsStorable.swift in Sources */,
+				43A1DAD0280CBD27000304EC /* Encodable+PDefaults.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
