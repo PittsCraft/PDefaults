@@ -6,76 +6,10 @@
 import Foundation
 import Combine
 
-/// Protocol for Optional types only, adding a `isNil()` func to them
-fileprivate protocol OptionalType {
-    /// Returns nil if the value or the recursively wrapped value is `Optional.none` aka `nil`
-    func isNil() -> Bool
-}
-
-/// Making Optional types implement our recursive `nil` check protocol
-extension Optional: OptionalType {
-    func isNil() -> Bool {
-        if self == nil {
-            return true
-        }
-        let unwrapped = unsafelyUnwrapped
-        if unwrapped is OptionalType {
-            return (unwrapped as! OptionalType).isNil()
-        }
-        return false
-    }
-}
-
-/// We need functions to map values before storing them to user defaults
+/// Functions to map values before storing them
 fileprivate typealias WriteMapper<Value> = (Value) -> Any?
-/// We need functions to map values read from user defaults storage to an expected type
+/// Functions to map values read from storage to an expected type
 fileprivate typealias ReadMapper<Value> = (Any?) -> Value?
-
-/// Any type implementing this protocol can be stored natively in UserDefaults
-public protocol UserDefaultsStorable {}
-
-/**
- Declare proper flag protocol conformance for all types natively compatible with UserDefaults storage
- */
-
-extension String : UserDefaultsStorable {}
-extension Int: UserDefaultsStorable {}
-extension Double: UserDefaultsStorable {}
-extension Float: UserDefaultsStorable {}
-extension Date: UserDefaultsStorable {}
-extension Data: UserDefaultsStorable {}
-extension Array: UserDefaultsStorable where Element: UserDefaultsStorable {}
-extension Dictionary: UserDefaultsStorable where Key == String, Value: UserDefaultsStorable {}
-extension Optional: UserDefaultsStorable where Wrapped: UserDefaultsStorable {}
-
-fileprivate extension Encodable {
-    /// `Encodable` mapping for storage
-    static func writeMapper(_ object: Self) -> Any? {
-        if let optObject = self as? OptionalType, optObject.isNil() {
-            return nil
-        }
-        do {
-            return try JSONEncoder().encode(object)
-        } catch {
-            print("Couldn't encode \(object)", error)
-            return nil
-        }
-    }
-}
-
-fileprivate extension Decodable {
-    /// `Decodable` mapping for reading from storage
-    static func readMapper(_ value: Any?) -> Self? {
-        guard let data = value as? Data else { return nil }
-        do {
-            return try JSONDecoder().decode(self, from: data)
-        } catch {
-            print("Couldn't decode \(String(describing: value))", error)
-            // Very opinionated choice to almost ignore thrown errors
-            return nil
-        }
-    }
-}
 
 
 @propertyWrapper
@@ -88,14 +22,6 @@ public class PDefaults<Value> {
         case willSet
     }
 
-    /// Enum for laziest behavior. Must only go forward: `none` -> `subject`
-    private enum SubjectHolder {
-        /// There was no need for the subject yet
-        case none
-        /// The subject was already read
-        case subject(CurrentValueSubject<Value, Never>)
-    }
-
     /// The default value
     private let defaultValue: Value
 
@@ -105,11 +31,11 @@ public class PDefaults<Value> {
     /// The subject holder
     private var subjectHolder: CurrentValueSubject<Value, Never>? = nil
 
-    /// The key in the user‘s defaults database.
+    /// The key in the user‘s defaults suite
     private let key: String
 
-    /// The user's defaults database
-    private let storage: UserDefaults
+    /// The user's defaults suite
+    private let suite: UserDefaults
 
     /// The publishing behavior
     private let behavior: PublishingBehavior
@@ -144,82 +70,127 @@ public class PDefaults<Value> {
         }
     }
 
-    private init(wrappedValue value: Value,
+    /// Designated initializer
+    ///
+    /// - parameters:
+    ///    - defaultValue: default value of the property
+    ///    - key: key in UserDefaults suite
+    ///    - suite: UserDefault's suite
+    ///    - behavior: behavior to publish before or after the wrapped value change
+    ///    - writeMapper: function to map values before storing them
+    ///    - readMapper:functions to map values read from storage to an expected type
+    private init(wrappedValue defaultValue: Value,
                  _ key: String ,
-                 storage: UserDefaults,
+                 suite: UserDefaults,
                  behavior: PublishingBehavior,
                  writeMapper: @escaping WriteMapper<Value>,
                  readMapper: @escaping ReadMapper<Value>) {
-        defaultValue = value
+        self.defaultValue = defaultValue
         self.key = key
-        self.storage = storage
+        self.suite = suite
         self.behavior = behavior
         self.writeMapper = writeMapper
         self.readMapper = readMapper
     }
 
-    public convenience init(wrappedValue value: Value,
+    /// Initializer
+    ///
+    /// For non-optional UserDefault's natively compatible types
+    ///
+    /// - parameters:
+    ///    - defaultValue: default value of the property
+    ///    - key: key in UserDefaults suite
+    ///    - suite: UserDefault's suite
+    ///    - behavior: behavior to publish before or after the wrapped value change
+    public convenience init(wrappedValue defaultValue: Value,
                             _ key: String,
-                            storage: UserDefaults = .standard,
+                            suite: UserDefaults = .standard,
                             behavior: PublishingBehavior = .willSet) where Value: UserDefaultsStorable {
-        self.init(wrappedValue: value,
+        self.init(wrappedValue: defaultValue,
                   key,
-                  storage: storage,
-                  behavior: behavior,
-                  writeMapper: { $0 },
-                  readMapper: { $0 as? Value})
-    }
-
-    public convenience init<T>(wrappedValue value: Value,
-                            _ key: String,
-                            storage: UserDefaults = .standard,
-                            behavior: PublishingBehavior = .willSet) where Value == Optional<T>, T: UserDefaultsStorable {
-        self.init(wrappedValue: value,
-                  key,
-                  storage: storage,
-                  behavior: behavior,
-                  writeMapper: { $0 },
-                  readMapper: { $0 as? Value})
-    }
-
-    public convenience init(wrappedValue value: Value,
-                            _ key: String,
-                            storage: UserDefaults = .standard,
-                            behavior: PublishingBehavior = .willSet) where Value: Codable {
-        self.init(wrappedValue: value,
-                  key,
-                  storage: storage,
+                  suite: suite,
                   behavior: behavior,
                   writeMapper: Value.writeMapper,
                   readMapper: Value.readMapper)
     }
 
-    public convenience init(wrappedValue value: Value,
-                            _ key: String,
-                            storage: UserDefaults = .standard,
-                            behavior: PublishingBehavior = .willSet) where Value: Codable & UserDefaultsStorable {
-        self.init(wrappedValue: value,
+    /// Initializer
+    ///
+    /// For optional UserDefault's natively compatible types
+    ///
+    /// - parameters:
+    ///    - defaultValue: default value of the property
+    ///    - key: key in UserDefaults suite
+    ///    - suite: UserDefault's suite
+    ///    - behavior: behavior to publish before or after the wrapped value change
+    public convenience init<T>(wrappedValue defaultValue: Value,
+                               _ key: String,
+                               suite: UserDefaults = .standard,
+                               behavior: PublishingBehavior = .willSet) where Value == Optional<T>, T: UserDefaultsStorable {
+        self.init(wrappedValue: defaultValue,
                   key,
-                  storage: storage,
+                  suite: suite,
                   behavior: behavior,
-                  writeMapper: { $0 },
-                  readMapper: { $0 as? Value})
+                  writeMapper: Value.writeMapper,
+                  readMapper: Value.readMapper)
     }
 
-    /// Read the user defaults stored value
+    /// Initializer
+    ///
+    /// For `Codable` types
+    ///
+    /// - parameters:
+    ///    - defaultValue: default value of the property
+    ///    - key: key in UserDefaults suite
+    ///    - suite: UserDefault's suite
+    ///    - behavior: behavior to publish before or after the wrapped value change
+    public convenience init(wrappedValue defaultValue: Value,
+                            _ key: String,
+                            suite: UserDefaults = .standard,
+                            behavior: PublishingBehavior = .willSet) where Value: Codable {
+        self.init(wrappedValue: defaultValue,
+                  key,
+                  suite: suite,
+                  behavior: behavior,
+                  writeMapper: Value.codableWriteMapper,
+                  readMapper: Value.decodableReadMapper)
+    }
+
+    /// Initializer
+    ///
+    /// Disambiguation initializer to choose native UserDefaults value mapping
+    ///
+    /// - parameters:
+    ///    - defaultValue: default value of the property
+    ///    - key: key in UserDefaults suite
+    ///    - suite: UserDefault's suite
+    ///    - behavior: behavior to publish before or after the wrapped value change
+    public convenience init(wrappedValue defaultValue: Value,
+                            _ key: String,
+                            suite: UserDefaults = .standard,
+                            behavior: PublishingBehavior = .willSet) where Value: Codable & UserDefaultsStorable {
+        self.init(wrappedValue: defaultValue,
+                  key,
+                  suite: suite,
+                  behavior: behavior,
+                  writeMapper: Value.writeMapper,
+                  readMapper: Value.readMapper)
+    }
+
+    /// Read the suite's stored value
     private func storedValue() -> Value? {
-        return readMapper(storage.object(forKey: key))
+        return readMapper(suite.object(forKey: key))
     }
 
-    /// Store the value in user defaults and return the value to expose
+    /// Store the value in suite and return the value to expose
     private func store(value: Value) -> Value {
         var exposedValue = value
         let storedValue = writeMapper(value)
         if storedValue.isNil() {
-            UserDefaults.standard.removeObject(forKey: key)
+            suite.removeObject(forKey: key)
             exposedValue = defaultValue
         } else {
-            UserDefaults.standard.set(storedValue, forKey: key)
+            suite.set(storedValue, forKey: key)
         }
         return exposedValue
     }
@@ -243,6 +214,7 @@ public class PDefaults<Value> {
         }
     }
 
+    /// Property wrapper's wrapped value
     public var wrappedValue: Value {
         set {
             let valueToExpose = store(value: newValue)
@@ -251,6 +223,6 @@ public class PDefaults<Value> {
         get { value }
     }
 
+    /// Property wrapper's projected value
     public lazy var projectedValue: AnyPublisher<Value, Never> = { subject.eraseToAnyPublisher() }()
 }
-

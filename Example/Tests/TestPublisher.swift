@@ -4,11 +4,11 @@ import PDefaults
 class TestPublisher: XCTestCase {
 
     let key = "mickey"
-    let storage = UserDefaults.standard
+    let suite = UserDefaults.standard
 
     override func setUp() {
         super.setUp()
-        storage.removeObject(forKey: key)
+        suite.removeObject(forKey: key)
     }
 
     override func tearDown() {
@@ -16,7 +16,7 @@ class TestPublisher: XCTestCase {
     }
 
     func testClosureCalledOnSink() {
-        let pdefaults = PDefaults(wrappedValue: 1, key, storage: storage)
+        let pdefaults = PDefaults(wrappedValue: 1, key, suite: suite)
         var called = false
         let cancellable = pdefaults.projectedValue.sink { _ in
             called = true
@@ -27,7 +27,7 @@ class TestPublisher: XCTestCase {
 
     func testNotPresentingValueWhilePublishing() {
         let initValue = 1
-        let pdefaults = PDefaults(wrappedValue: initValue, key, storage: storage)
+        let pdefaults = PDefaults(wrappedValue: initValue, key, suite: suite)
         let cancellable = pdefaults.projectedValue.sink { _ in
             XCTAssert(pdefaults.wrappedValue == initValue, "While sinking, the directly accessed value should be the previous one")
         }
@@ -37,7 +37,7 @@ class TestPublisher: XCTestCase {
 
     func testPresentingValueWhilePublishing() {
         let newValue = 2
-        let pdefaults = PDefaults(wrappedValue: 1, key, storage: storage, behavior: .didSet)
+        let pdefaults = PDefaults(wrappedValue: 1, key, suite: suite, behavior: .didSet)
         var isFirstReceive = true
         let cancellable = pdefaults.projectedValue.sink { _ in
             if !isFirstReceive {
@@ -51,7 +51,7 @@ class TestPublisher: XCTestCase {
 
     func testSinkRightValue() {
         var lastValue = 1
-        let pdefaults = PDefaults(wrappedValue: lastValue, key, storage: storage)
+        let pdefaults = PDefaults(wrappedValue: lastValue, key, suite: suite)
         let cancellable = pdefaults.projectedValue.sink { value in
             XCTAssert(value == lastValue, "While sinking, the directly accessed value should be the previous one")
         }

@@ -4,11 +4,11 @@ import PDefaults
 class TestStorage: XCTestCase {
 
     let key = "mickey"
-    let storage = UserDefaults.standard
+    let suite = UserDefaults.standard
 
     override func setUp() {
         super.setUp()
-        storage.removeObject(forKey: key)
+        suite.removeObject(forKey: key)
     }
     
     override func tearDown() {
@@ -16,23 +16,23 @@ class TestStorage: XCTestCase {
     }
     
     func testNoStorageWhenNotNeeded() {
-        let pDefaults = PDefaults(wrappedValue: Optional.some(1), key, storage: storage)
-        XCTAssert(storage.object(forKey: key) == nil, "Storage should not contain a value for key \"\(key)\"")
+        let pDefaults = PDefaults(wrappedValue: Optional.some(1), key, suite: suite)
+        XCTAssert(suite.object(forKey: key) == nil, "Storage should not contain a value for key \"\(key)\"")
         _ = pDefaults.wrappedValue
-        XCTAssert(storage.object(forKey: key) == nil, "Storage should not contain a value for key \"\(key)\"")
+        XCTAssert(suite.object(forKey: key) == nil, "Storage should not contain a value for key \"\(key)\"")
         _ = pDefaults.projectedValue
-        XCTAssert(storage.object(forKey: key) == nil, "Storage should not contain a value for key \"\(key)\"")
+        XCTAssert(suite.object(forKey: key) == nil, "Storage should not contain a value for key \"\(key)\"")
         pDefaults.wrappedValue = nil
-        XCTAssert(storage.object(forKey: key) == nil, "Storage should not contain a value for key \"\(key)\"")
+        XCTAssert(suite.object(forKey: key) == nil, "Storage should not contain a value for key \"\(key)\"")
         pDefaults.wrappedValue = 1
         pDefaults.wrappedValue = nil
-        XCTAssert(storage.object(forKey: key) == nil, "Storage should not contain a value for key \"\(key)\"")
+        XCTAssert(suite.object(forKey: key) == nil, "Storage should not contain a value for key \"\(key)\"")
     }
 
     func testStorageValueInt() {
-        let pDefaults = PDefaults(wrappedValue: 1, key, storage: storage)
+        let pDefaults = PDefaults(wrappedValue: 1, key, suite: suite)
         pDefaults.wrappedValue = 2
-        XCTAssert(storage.object(forKey: key) as? Int == 2, "Storage contain the value set to wrappedValue")
+        XCTAssert(suite.object(forKey: key) as? Int == 2, "Storage contains the value set to wrappedValue")
         XCTAssert(pDefaults.wrappedValue == 2, "Wrapped value should expose the set value")
     }
 
@@ -42,24 +42,32 @@ class TestStorage: XCTestCase {
 
     func testCodableStorageDefaultValueNoImpact() {
         // Storage: nil
-        let pDefaults = PDefaults<CodableStruct?>(wrappedValue: nil, key, storage: storage)
+        let pDefaults = PDefaults<CodableStruct?>(wrappedValue: nil, key, suite: suite)
         let codable = CodableStruct(string: "youpi")
         pDefaults.wrappedValue = codable
         // Storage: codable
         let otherCodable = CodableStruct(string: "hello")
-        let pDefaults2 = PDefaults<CodableStruct>(wrappedValue: otherCodable, key, storage: storage)
+        let pDefaults2 = PDefaults<CodableStruct>(wrappedValue: otherCodable, key, suite: suite)
         XCTAssert(pDefaults2.wrappedValue == codable, "Wrapped value should be equal to the value stored using the same key")
     }
 
     func testCodableStorageNilDefaultValueNoImpact() {
         // Storage: nil
-        var pDefaults = PDefaults<CodableStruct?>(wrappedValue: nil, key, storage: storage)
+        var pDefaults = PDefaults<CodableStruct?>(wrappedValue: nil, key, suite: suite)
         let codable = CodableStruct(string: "youpi")
         let otherCodable = CodableStruct(string: "hello")
-        let pDefaults2 = PDefaults<CodableStruct>(wrappedValue: codable, key, storage: storage)
+        let pDefaults2 = PDefaults<CodableStruct>(wrappedValue: codable, key, suite: suite)
         pDefaults2.wrappedValue = otherCodable
         // Storage: otherCodable
-        pDefaults = PDefaults<CodableStruct?>(wrappedValue: nil, key, storage: storage)
+        pDefaults = PDefaults<CodableStruct?>(wrappedValue: nil, key, suite: suite)
         XCTAssert(pDefaults.wrappedValue == otherCodable, "Wrapped value should be equal to the value stored using the same key")
+    }
+
+    func testDistinctSuiteStorage() {
+        let otherSuite = UserDefaults(suiteName: "dingo")!
+        let pDefaults = PDefaults(wrappedValue: 1, key, suite: otherSuite)
+        pDefaults.wrappedValue = 2
+        XCTAssert(otherSuite.object(forKey: key) as? Int == 2, "Distinct suite contains the value set to wrappedValue")
+        XCTAssert(pDefaults.wrappedValue == 2, "Wrapped value should expose the set value")
     }
 }
