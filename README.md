@@ -152,12 +152,13 @@ class Service: ServiceProtocol {
 
 ## Requirements
 
-iOS 13.0+
+iOS 13.0+, macOS 10.15+
 
 ## Installation
 
-PDefaults is available through [CocoaPods](https://cocoapods.org). To install
-it, simply add the following line to your Podfile:
+PDefaults is available via [Swift Package Manager](https://www.swift.org/package-manager/) using this repository URL.
+
+You can also install it through [CocoaPods](https://cocoapods.org).
 
 ```ruby
 pod 'PDefaults'
