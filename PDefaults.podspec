@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'PDefaults'
-  s.version          = '0.0.1'
+  s.version          = '0.0.2'
   s.summary          = 'Combiny, concise and strong UserDefaults property wrapper'
   s.swift_version    = '5.4'
 
@@ -31,7 +31,7 @@ Pod::Spec.new do |s|
   s.osx.deployment_target  = '10.15'
   s.ios.deployment_target = '13.0'
 
-  s.source_files = 'Sources/PDefaults/**/*'
+  s.source_files = 'Sources/**/*'
   
   # s.resource_bundles = {
   #   'PDefaults' => ['PDefaults/Assets/*.png']
