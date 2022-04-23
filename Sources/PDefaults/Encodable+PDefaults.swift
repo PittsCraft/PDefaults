@@ -17,6 +17,7 @@ extension Encodable {
             return try JSONEncoder().encode(value)
         } catch {
             print("Couldn't encode \(value)", error)
+            // Opinionated choice to almost ignore thrown errors
             return nil
         }
     }

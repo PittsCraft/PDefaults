@@ -15,7 +15,7 @@ extension Decodable {
             return try JSONDecoder().decode(self, from: data)
         } catch {
             print("Couldn't decode \(String(describing: object))", error)
-            // Very opinionated choice to almost ignore thrown errors
+            // Opinionated choice to almost ignore thrown errors
             return nil
         }
     }
