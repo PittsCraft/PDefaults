@@ -1,6 +1,0 @@
-framework module PDefaults {
-  umbrella header "PDefaults-umbrella.h"
-
-  export *
-  module * { export * }
-}

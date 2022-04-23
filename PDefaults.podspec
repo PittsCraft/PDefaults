@@ -31,7 +31,7 @@ Pod::Spec.new do |s|
   s.osx.deployment_target  = '10.15'
   s.ios.deployment_target = '13.0'
 
-  s.source_files = 'PDefaults/Classes/**/*'
+  s.source_files = 'Sources/PDefaults/**/*'
   
   # s.resource_bundles = {
   #   'PDefaults' => ['PDefaults/Assets/*.png']
