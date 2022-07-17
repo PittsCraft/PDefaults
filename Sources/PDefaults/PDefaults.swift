@@ -137,6 +137,25 @@ public class PDefaults<Value> {
 
     /// Initializer
     ///
+    /// For optional UserDefault's natively compatible types with implicit default value = `nil`
+    ///
+    /// - parameters:
+    ///    - key: key in UserDefaults suite
+    ///    - suite: UserDefault's suite
+    ///    - behavior: behavior to publish before or after the wrapped value change
+    public convenience init<T>(_ key: String,
+                               suite: UserDefaults = .standard,
+                               behavior: PublishingBehavior = .willSet) where Value == Optional<T>, T: UserDefaultsStorable {
+        self.init(wrappedValue: nil,
+                  key,
+                  suite: suite,
+                  behavior: behavior,
+                  writeMapper: Value.writeMapper,
+                  readMapper: Value.readMapper)
+    }
+
+    /// Initializer
+    ///
     /// For `Codable` types
     ///
     /// - parameters:
@@ -158,6 +177,25 @@ public class PDefaults<Value> {
 
     /// Initializer
     ///
+    /// For optional `Codable` types with implicit default value = `nil`
+    ///
+    /// - parameters:
+    ///    - key: key in UserDefaults suite
+    ///    - suite: UserDefault's suite
+    ///    - behavior: behavior to publish before or after the wrapped value change
+    public convenience init<T>(_ key: String,
+                               suite: UserDefaults = .standard,
+                               behavior: PublishingBehavior = .willSet) where Value == Optional<T>, T: Codable {
+        self.init(wrappedValue: nil,
+                  key,
+                  suite: suite,
+                  behavior: behavior,
+                  writeMapper: Value.codableWriteMapper,
+                  readMapper: Value.decodableReadMapper)
+    }
+
+    /// Initializer
+    ///
     /// Disambiguation initializer to choose native UserDefaults value mapping
     ///
     /// - parameters:
@@ -170,6 +208,25 @@ public class PDefaults<Value> {
                             suite: UserDefaults = .standard,
                             behavior: PublishingBehavior = .willSet) where Value: Codable & UserDefaultsStorable {
         self.init(wrappedValue: defaultValue,
+                  key,
+                  suite: suite,
+                  behavior: behavior,
+                  writeMapper: Value.writeMapper,
+                  readMapper: Value.readMapper)
+    }
+
+    /// Initializer
+    ///
+    /// Disambiguation initializer to choose native UserDefaults value mapping for optional `Codable` and natively compatible type
+    ///
+    /// - parameters:
+    ///    - key: key in UserDefaults suite
+    ///    - suite: UserDefault's suite
+    ///    - behavior: behavior to publish before or after the wrapped value change
+    public convenience init<T>(_ key: String,
+                               suite: UserDefaults = .standard,
+                               behavior: PublishingBehavior = .willSet) where Value == Optional<T>, T: Codable & UserDefaultsStorable {
+        self.init(wrappedValue: nil,
                   key,
                   suite: suite,
                   behavior: behavior,
