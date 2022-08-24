@@ -7,9 +7,9 @@ import Foundation
 import Combine
 
 /// Functions to map values before storing them
-fileprivate typealias WriteMapper<Value> = (Value) -> Any?
+fileprivate typealias WriteMapper<Value> = (Value) throws -> Any
 /// Functions to map values read from storage to an expected type
-fileprivate typealias ReadMapper<Value> = (Any?) -> Value?
+fileprivate typealias ReadMapper<Value> = (Any) throws -> Value
 
 
 @propertyWrapper
@@ -41,10 +41,10 @@ public class PDefaults<Value> {
     private let behavior: PublishingBehavior
 
     /// Mapper to transform the value before storing in user defaults
-    private let writeMapper: (Value) -> Any?
+    private let writeMapper: WriteMapper<Value>
 
     /// Mapper to transform the object stored in user defaults to a value
-    private let readMapper: (Any?) -> Value?
+    private let readMapper: ReadMapper<Value>
 
     /// The subject
     private var subject: CurrentValueSubject<Value, Never> {
@@ -62,7 +62,7 @@ public class PDefaults<Value> {
     private var value: Value {
         switch valueHolder {
         case .none:
-            let value = storedValue() ?? defaultValue
+            let value = loadValue()
             valueHolder = value
             return value
         case .some(let value):
@@ -234,20 +234,25 @@ public class PDefaults<Value> {
                   readMapper: Value.readMapper)
     }
 
-    /// Read the suite's stored value
-    private func storedValue() -> Value? {
-        return readMapper(suite.object(forKey: key))
+    /// Read the suite's stored value and falls back to the default value if the suite entry doesn't exist or is invalid
+    private func loadValue() -> Value {
+        if let object = suite.object(forKey: key) {
+            do {
+                return try readMapper(object)
+            } catch {}
+        }
+        return defaultValue
     }
 
     /// Store the value in suite and return the value to expose
     private func store(value: Value) -> Value {
         var exposedValue = value
-        let storedValue = writeMapper(value)
-        if storedValue.isNil() {
+        do {
+            let storedValue = try writeMapper(value)
+            suite.set(storedValue, forKey: key)
+        } catch {
             suite.removeObject(forKey: key)
             exposedValue = defaultValue
-        } else {
-            suite.set(storedValue, forKey: key)
         }
         return exposedValue
     }

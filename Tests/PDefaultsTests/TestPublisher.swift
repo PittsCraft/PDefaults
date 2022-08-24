@@ -59,4 +59,12 @@ class TestPublisher: XCTestCase {
         pdefaults.wrappedValue = lastValue
         cancellable.cancel()
     }
+
+    func testOptionalSinkNotNil() {
+        let pdefaults = PDefaults<String?>(wrappedValue: "coucou", key, suite: suite)
+        let cancellable = pdefaults.projectedValue.sink { value in
+            XCTAssert(value != nil, "While sinking, we don't expect any nil value initially")
+        }
+        cancellable.cancel()
+    }
 }
