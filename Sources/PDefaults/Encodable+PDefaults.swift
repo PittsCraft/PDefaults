@@ -7,18 +7,16 @@
 
 import Foundation
 
+enum EncodableError: Error {
+    case cannotEncodeNil
+}
+
 extension Encodable {
     /// `Encodable` mapping for storage
-    static func codableWriteMapper(_ value: Self) -> Any? {
-        if let optValue = self as? OptionalType, optValue.isNil() {
-            return nil
+    static func codableWriteMapper(_ value: Self) throws -> Any {
+        if let optValue = value as? OptionalType, optValue.isNil() {
+            throw EncodableError.cannotEncodeNil
         }
-        do {
-            return try JSONEncoder().encode(value)
-        } catch {
-            print("Couldn't encode \(value)", error)
-            // Opinionated choice to almost ignore thrown errors
-            return nil
-        }
+        return try JSONEncoder().encode(value)
     }
 }
