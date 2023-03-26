@@ -234,6 +234,23 @@ public class PDefaults<Value> {
                   readMapper: Value.readMapper)
     }
 
+    /// Constructor catching all type errors to expose compatibility constraints message
+    @available(*, unavailable, message: "You can use PDefaults only types that either conform to Codable or are natively handled by UserDefaults")
+    public convenience init(_ key: String,
+                            suite: UserDefaults = .standard,
+                            behavior: PublishingBehavior = .willSet) {
+        fatalError()
+    }
+
+    /// Constructor catching all type errors to expose compatibility constraints message
+    @available(*, unavailable, message: "You can use PDefaults only types that either conform to Codable or are natively handled by UserDefaults")
+    public convenience init<T>(wrappedValue defaultValue: T,
+                               _ key: String,
+                               suite: UserDefaults = .standard,
+                               behavior: PublishingBehavior = .willSet) {
+        fatalError()
+    }
+
     /// Read the suite's stored value and falls back to the default value if the suite entry doesn't exist or is invalid
     private func loadValue() -> Value {
         if let object = suite.object(forKey: key) {
