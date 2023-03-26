@@ -1,9 +1,5 @@
 # PDefaults
 
-[![Version](https://img.shields.io/cocoapods/v/PDefaults.svg?style=flat)](https://cocoapods.org/pods/PDefaults)
-[![License](https://img.shields.io/cocoapods/l/PDefaults.svg?style=flat)](https://cocoapods.org/pods/PDefaults)
-[![Platform](https://img.shields.io/cocoapods/p/PDefaults.svg?style=flat)](https://cocoapods.org/pods/PDefaults)
-
 Provides concises and SwiftUI friendly [UserDefaults](https://developer.apple.com/documentation/foundation/userdefaults) storage with Combine publishing capability.
 
 All regular `UserDefaults` compatible types and `Codable`types are supported (optional or not). 
@@ -157,12 +153,6 @@ iOS 13.0+, macOS 10.15+
 ## Installation
 
 PDefaults is available via [Swift Package Manager](https://www.swift.org/package-manager/) using this repository URL.
-
-You can also install it through [CocoaPods](https://cocoapods.org).
-
-```ruby
-pod 'PDefaults'
-```
 
 ## Author
 
