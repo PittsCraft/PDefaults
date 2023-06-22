@@ -10,11 +10,11 @@ class TestStorage: XCTestCase {
         super.setUp()
         suite.removeObject(forKey: key)
     }
-    
+
     override func tearDown() {
         super.tearDown()
     }
-    
+
     func testNoStorageWhenNotNeeded() {
         let pDefaults = PDefaults(wrappedValue: Optional.some(1), key, suite: suite)
         XCTAssert(suite.object(forKey: key) == nil, "Storage should not contain a value for key \"\(key)\"")
@@ -48,7 +48,8 @@ class TestStorage: XCTestCase {
         // Storage: codable
         let otherCodable = CodableStruct(string: "hello")
         let pDefaults2 = PDefaults<CodableStruct>(wrappedValue: otherCodable, key, suite: suite)
-        XCTAssert(pDefaults2.wrappedValue == codable, "Wrapped value should be equal to the value stored using the same key")
+        XCTAssert(pDefaults2.wrappedValue == codable,
+                  "Wrapped value should be equal to the value stored using the same key")
     }
 
     func testCodableStorageNilDefaultValueNoImpact() {
@@ -60,7 +61,8 @@ class TestStorage: XCTestCase {
         pDefaults2.wrappedValue = otherCodable
         // Storage: otherCodable
         pDefaults = PDefaults<CodableStruct?>(wrappedValue: nil, key, suite: suite)
-        XCTAssert(pDefaults.wrappedValue == otherCodable, "Wrapped value should be equal to the value stored using the same key")
+        XCTAssert(pDefaults.wrappedValue == otherCodable,
+                  "Wrapped value should be equal to the value stored using the same key")
     }
 
     func testDistinctSuiteStorage() {

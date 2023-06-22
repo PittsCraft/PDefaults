@@ -21,6 +21,7 @@ extension Optional: OptionalType {
         }
         let unwrapped = unsafelyUnwrapped
         if unwrapped is OptionalType {
+            // swiftlint:disable:next force_cast
             return (unwrapped as! OptionalType).isNil()
         }
         return false

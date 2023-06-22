@@ -14,7 +14,7 @@ public protocol UserDefaultsStorable {}
  Declare proper flag protocol conformance for all types natively compatible with UserDefaults storage
  */
 
-extension String : UserDefaultsStorable {}
+extension String: UserDefaultsStorable {}
 extension Int: UserDefaultsStorable {}
 extension Double: UserDefaultsStorable {}
 extension Float: UserDefaultsStorable {}
