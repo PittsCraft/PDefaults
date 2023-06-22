@@ -29,7 +29,8 @@ class TestPublisher: XCTestCase {
         let initValue = 1
         let pdefaults = PDefaults(wrappedValue: initValue, key, suite: suite)
         let cancellable = pdefaults.projectedValue.sink { _ in
-            XCTAssert(pdefaults.wrappedValue == initValue, "While sinking, the directly accessed value should be the previous one")
+            XCTAssert(pdefaults.wrappedValue == initValue,
+                      "While sinking, the directly accessed value should be the previous one")
         }
         pdefaults.wrappedValue = 2
         cancellable.cancel()
@@ -41,7 +42,8 @@ class TestPublisher: XCTestCase {
         var isFirstReceive = true
         let cancellable = pdefaults.projectedValue.sink { _ in
             if !isFirstReceive {
-                XCTAssert(pdefaults.wrappedValue == newValue, "While sinking, the directly accessed value should be the previous one")
+                XCTAssert(pdefaults.wrappedValue == newValue,
+                          "While sinking, the directly accessed value should be the previous one")
             }
             isFirstReceive = false
         }

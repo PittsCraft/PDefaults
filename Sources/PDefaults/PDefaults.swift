@@ -7,13 +7,13 @@ import Foundation
 import Combine
 
 /// Functions to map values before storing them
-fileprivate typealias WriteMapper<Value> = (Value) throws -> Any
+private typealias WriteMapper<Value> = (Value) throws -> Any
 /// Functions to map values read from storage to an expected type
-fileprivate typealias ReadMapper<Value> = (Any) throws -> Value
-
+private typealias ReadMapper<Value> = (Any) throws -> Value
 
 @propertyWrapper
-/// A property wrapper for efficient and type safe `UserDefaults` storage and publication using an underlying `CurrentValueSubject`
+/// A property wrapper for efficient and type safe `UserDefaults` storage and publication
+/// using an underlying `CurrentValueSubject`
 public class PDefaults<Value> {
 
     /// Behavior to publish before or after the wrapped value change
@@ -26,10 +26,10 @@ public class PDefaults<Value> {
     private let defaultValue: Value
 
     /// The value holder
-    private var valueHolder: Value? = nil
+    private var valueHolder: Value?
 
     /// The subject holder
-    private var subjectHolder: CurrentValueSubject<Value, Never>? = nil
+    private var subjectHolder: CurrentValueSubject<Value, Never>?
 
     /// The key in the user‘s defaults suite
     private let key: String
@@ -80,7 +80,7 @@ public class PDefaults<Value> {
     ///    - writeMapper: function to map values before storing them
     ///    - readMapper:functions to map values read from storage to an expected type
     private init(wrappedValue defaultValue: Value,
-                 _ key: String ,
+                 _ key: String,
                  suite: UserDefaults,
                  behavior: PublishingBehavior,
                  writeMapper: @escaping WriteMapper<Value>,
@@ -123,10 +123,12 @@ public class PDefaults<Value> {
     ///    - key: key in UserDefaults suite
     ///    - suite: UserDefault's suite
     ///    - behavior: behavior to publish before or after the wrapped value change
-    public convenience init<T>(wrappedValue defaultValue: Value,
-                               _ key: String,
-                               suite: UserDefaults = .standard,
-                               behavior: PublishingBehavior = .willSet) where Value == Optional<T>, T: UserDefaultsStorable {
+    public convenience init<T>(
+        wrappedValue defaultValue: Value,
+        _ key: String,
+        suite: UserDefaults = .standard,
+        behavior: PublishingBehavior = .willSet
+    ) where Value == T?, T: UserDefaultsStorable {
         self.init(wrappedValue: defaultValue,
                   key,
                   suite: suite,
@@ -143,9 +145,11 @@ public class PDefaults<Value> {
     ///    - key: key in UserDefaults suite
     ///    - suite: UserDefault's suite
     ///    - behavior: behavior to publish before or after the wrapped value change
-    public convenience init<T>(_ key: String,
-                               suite: UserDefaults = .standard,
-                               behavior: PublishingBehavior = .willSet) where Value == Optional<T>, T: UserDefaultsStorable {
+    public convenience init<T>(
+        _ key: String,
+        suite: UserDefaults = .standard,
+        behavior: PublishingBehavior = .willSet
+    ) where Value == T?, T: UserDefaultsStorable {
         self.init(wrappedValue: nil,
                   key,
                   suite: suite,
@@ -185,7 +189,7 @@ public class PDefaults<Value> {
     ///    - behavior: behavior to publish before or after the wrapped value change
     public convenience init<T>(_ key: String,
                                suite: UserDefaults = .standard,
-                               behavior: PublishingBehavior = .willSet) where Value == Optional<T>, T: Codable {
+                               behavior: PublishingBehavior = .willSet) where Value == T?, T: Codable {
         self.init(wrappedValue: nil,
                   key,
                   suite: suite,
@@ -217,15 +221,18 @@ public class PDefaults<Value> {
 
     /// Initializer
     ///
-    /// Disambiguation initializer to choose native UserDefaults value mapping for optional `Codable` and natively compatible type
+    /// Disambiguation initializer to choose native UserDefaults value mapping for optional `Codable`
+    /// and natively compatible type
     ///
     /// - parameters:
     ///    - key: key in UserDefaults suite
     ///    - suite: UserDefault's suite
     ///    - behavior: behavior to publish before or after the wrapped value change
-    public convenience init<T>(_ key: String,
-                               suite: UserDefaults = .standard,
-                               behavior: PublishingBehavior = .willSet) where Value == Optional<T>, T: Codable & UserDefaultsStorable {
+    public convenience init<T>(
+        _ key: String,
+        suite: UserDefaults = .standard,
+        behavior: PublishingBehavior = .willSet
+    ) where Value == T?, T: Codable & UserDefaultsStorable {
         self.init(wrappedValue: nil,
                   key,
                   suite: suite,
@@ -234,16 +241,18 @@ public class PDefaults<Value> {
                   readMapper: Value.readMapper)
     }
 
-    /// Constructor catching all type errors to expose compatibility constraints message
     @available(*, unavailable, message: "You can use PDefaults only types that either conform to Codable or are natively handled by UserDefaults")
+    // swiftlint:disable:previous line_length
+    /// Constructor catching all type errors to expose compatibility constraints message
     public convenience init(_ key: String,
                             suite: UserDefaults = .standard,
                             behavior: PublishingBehavior = .willSet) {
         fatalError()
     }
 
-    /// Constructor catching all type errors to expose compatibility constraints message
     @available(*, unavailable, message: "You can use PDefaults only types that either conform to Codable or are natively handled by UserDefaults")
+    // swiftlint:disable:previous line_length
+    /// Constructor catching all type errors to expose compatibility constraints message
     public convenience init<T>(wrappedValue defaultValue: T,
                                _ key: String,
                                suite: UserDefaults = .standard,
@@ -295,11 +304,11 @@ public class PDefaults<Value> {
 
     /// Property wrapper's wrapped value
     public var wrappedValue: Value {
+        get { value }
         set {
             let valueToExpose = store(value: newValue)
             expose(value: valueToExpose)
         }
-        get { value }
     }
 
     /// Property wrapper's projected value
