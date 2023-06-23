@@ -148,7 +148,7 @@ class Service: ServiceProtocol {
 
 ## Requirements
 
-iOS 13.0+, macOS 10.15+
+iOS 13.0+, macOS 12+
 
 ## Installation
 

@@ -49,7 +49,8 @@ class TestStorage: XCTestCase {
         let otherCodable = CodableStruct(string: "hello")
         let pDefaults2 = PDefaults<CodableStruct>(wrappedValue: otherCodable, key, suite: suite)
         XCTAssert(pDefaults2.wrappedValue == codable,
-                  "Wrapped value should be equal to the value stored using the same key")
+                  "Wrapped value should be equal to the value stored explicitly."
+                  + " Default value of only-declared PDefaults instance should have no impact.")
     }
 
     func testCodableStorageNilDefaultValueNoImpact() {
@@ -62,14 +63,16 @@ class TestStorage: XCTestCase {
         // Storage: otherCodable
         pDefaults = PDefaults<CodableStruct?>(wrappedValue: nil, key, suite: suite)
         XCTAssert(pDefaults.wrappedValue == otherCodable,
-                  "Wrapped value should be equal to the value stored using the same key")
+                  "Wrapped value should be equal to the value stored explicitly."
+                  + " Default value of only-declared PDefaults instance should have no impact.")
     }
 
     func testDistinctSuiteStorage() {
         let otherSuite = UserDefaults(suiteName: "dingo")!
         let pDefaults = PDefaults(wrappedValue: 1, key, suite: otherSuite)
         pDefaults.wrappedValue = 2
-        XCTAssert(otherSuite.object(forKey: key) as? Int == 2, "Distinct suite contains the value set to wrappedValue")
+        XCTAssert(otherSuite.object(forKey: key) as? Int == 2,
+                  "Distinct suite should contains the value set to wrappedValue")
         XCTAssert(pDefaults.wrappedValue == 2, "Wrapped value should expose the set value")
     }
 }
