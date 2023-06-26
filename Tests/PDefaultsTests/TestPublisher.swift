@@ -143,8 +143,8 @@ class TestPublisher: XCTestCase {
             .dropFirst()
             .sink {
                 XCTAssert($0 == defaultValue,
-                          "Second PDefaults should send proper value through its publisher when first one's value is"
-                          + " updated")
+                          "Second PDefaults should send its default value through its publisher when first one's value"
+                          + " is reset to nil")
             }
         pdefaults1.wrappedValue = nil
         cancellable.cancel()
