@@ -14,7 +14,7 @@ private typealias ReadMapper<Value> = (Any) throws -> Value
 @propertyWrapper
 /// A property wrapper for efficient and type safe `UserDefaults` storage and publication
 /// using an underlying `CurrentValueSubject`
-public class PDefaults<Value> {
+public class PDefaults<Value>: NSObject {
 
     /// Behavior to publish before or after the wrapped value change
     public enum PublishingBehavior {
@@ -91,6 +91,13 @@ public class PDefaults<Value> {
         self.behavior = behavior
         self.writeMapper = writeMapper
         self.readMapper = readMapper
+        super.init()
+        suite.addObserver(self, forKeyPath: key, options: .new, context: nil)
+    }
+
+    /// Deinit
+    deinit {
+        suite.removeObserver(self, forKeyPath: key)
     }
 
     /// Initializer
@@ -261,6 +268,7 @@ public class PDefaults<Value> {
     }
 
     /// Read the suite's stored value and falls back to the default value if the suite entry doesn't exist or is invalid
+    ///  - returns the stored value or the default one
     private func loadValue() -> Value {
         if let object = suite.object(forKey: key) {
             do {
@@ -270,34 +278,47 @@ public class PDefaults<Value> {
         return defaultValue
     }
 
-    /// Store the value in suite and return the value to expose
-    private func store(value: Value) -> Value {
-        var exposedValue = value
+    /// Store the value in suite
+    /// - parameters:
+    ///    - value: the value to store
+    private func store(value: Value) {
         do {
             let storedValue = try writeMapper(value)
             suite.set(storedValue, forKey: key)
         } catch {
             suite.removeObject(forKey: key)
-            exposedValue = defaultValue
         }
-        return exposedValue
     }
 
-    /// Expose the value in the wrapped value and through the subject if any
-    private func expose(value: Value) {
+    /// Read the value contained in a KVO change dictionary, falls back to the default value
+    ///
+    ///  - parameters:
+    ///     - change: KVO change dictionary
+    ///  - returns the value matching the KVO change
+    private func valueFor(change: [NSKeyValueChangeKey: Any]?) -> Value {
+        if let rawValue = change?[.newKey] {
+            do {
+                return try readMapper(rawValue)
+            } catch {}
+        }
+        return defaultValue
+    }
+
+    // swiftlint:disable:next block_based_kvo
+    public override func observeValue(forKeyPath keyPath: String?,
+                                      of object: Any?,
+                                      change: [NSKeyValueChangeKey: Any]?,
+                                      context: UnsafeMutableRawPointer?) {
+        guard keyPath == key, object as? UserDefaults == suite else {
+            return
+        }
+        let value = valueFor(change: change)
         switch behavior {
         case .didSet:
             valueHolder = value
+            subjectHolder?.send(value)
         case .willSet:
-            break
-        }
-        if let subject = subjectHolder {
-            subject.send(value)
-        }
-        switch behavior {
-        case .didSet:
-            break
-        case .willSet:
+            subjectHolder?.send(value)
             valueHolder = value
         }
     }
@@ -305,10 +326,7 @@ public class PDefaults<Value> {
     /// Property wrapper's wrapped value
     public var wrappedValue: Value {
         get { value }
-        set {
-            let valueToExpose = store(value: newValue)
-            expose(value: valueToExpose)
-        }
+        set { store(value: newValue) }
     }
 
     /// Property wrapper's projected value

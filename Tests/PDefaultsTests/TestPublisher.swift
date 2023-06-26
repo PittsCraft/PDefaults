@@ -27,7 +27,7 @@ class TestPublisher: XCTestCase {
 
     func testNotPresentingValueWhilePublishing() {
         let initValue = 1
-        let pdefaults = PDefaults(wrappedValue: initValue, key, suite: suite)
+        let pdefaults = PDefaults(wrappedValue: initValue, key, suite: suite, behavior: .willSet)
         let cancellable = pdefaults.projectedValue.sink { _ in
             XCTAssert(pdefaults.wrappedValue == initValue,
                       "While sinking, the directly accessed value should be the previous one")
@@ -43,7 +43,7 @@ class TestPublisher: XCTestCase {
         let cancellable = pdefaults.projectedValue.sink { _ in
             if !isFirstReceive {
                 XCTAssert(pdefaults.wrappedValue == newValue,
-                          "While sinking, the directly accessed value should be the previous one")
+                          "While sinking, the directly accessed value should be the current one")
             }
             isFirstReceive = false
         }
@@ -62,11 +62,91 @@ class TestPublisher: XCTestCase {
         cancellable.cancel()
     }
 
+    func testSinkOnValueChange() {
+        let pdefaults = PDefaults(wrappedValue: 1, key, suite: suite)
+        var count = 0
+        let cancellable = pdefaults.projectedValue.sink { _ in
+            count += 1
+        }
+        pdefaults.wrappedValue = 1
+        XCTAssert(count == 2, "Expected sinking to happen twice, but happened only \(count) time")
+        cancellable.cancel()
+    }
+
     func testOptionalSinkNotNil() {
         let pdefaults = PDefaults<String?>(wrappedValue: "coucou", key, suite: suite)
         let cancellable = pdefaults.projectedValue.sink { value in
             XCTAssert(value != nil, "While sinking, we don't expect any nil value initially")
         }
+        cancellable.cancel()
+    }
+
+    func testTwoPDefaultsSameValue() {
+        let pdefaults1 = PDefaults<String?>(wrappedValue: "coucou", key, suite: suite)
+        pdefaults1.wrappedValue = "hello"
+        let pdefaults2 = PDefaults<String?>(wrappedValue: "coucou", key, suite: suite)
+        XCTAssert(pdefaults2.wrappedValue == pdefaults1.wrappedValue)
+    }
+
+    func testTwoPDefaultsSameValueAfterChange() {
+        let pdefaults1 = PDefaults<String?>(wrappedValue: "coucou", key, suite: suite)
+        let pdefaults2 = PDefaults<String?>(wrappedValue: "coucou", key, suite: suite)
+        pdefaults1.wrappedValue = "hello"
+        XCTAssert(pdefaults2.wrappedValue == pdefaults1.wrappedValue)
+    }
+
+    func testTwoPDefaultsSameValueAfterLoadingThenChange() {
+        let pdefaults1 = PDefaults<String?>(wrappedValue: "coucou", key, suite: suite)
+        let pdefaults2 = PDefaults<String?>(wrappedValue: "coucou", key, suite: suite)
+        _ = pdefaults2.wrappedValue
+        pdefaults1.wrappedValue = "hello"
+        XCTAssert(pdefaults2.wrappedValue == pdefaults1.wrappedValue)
+    }
+
+    func testTwoPDefaultsReactiveInitValue() {
+        let newValue = "hello"
+        let pdefaults1 = PDefaults<String?>(wrappedValue: "coucou", key, suite: suite)
+        pdefaults1.wrappedValue = newValue
+        let pdefaults2 = PDefaults<String?>(wrappedValue: "coucou", key, suite: suite)
+        let cancellable = pdefaults2
+            .projectedValue
+            .sink {
+                XCTAssert($0 == newValue,
+                          "Second PDefaults should send initial (stored) value through its publisher")
+            }
+        cancellable.cancel()
+    }
+
+    func testTwoPDefaultsReactiveValue() {
+        let newValue = "hello"
+        let pdefaults1 = PDefaults<String?>(wrappedValue: "coucou", key, suite: suite)
+        let pdefaults2 = PDefaults<String?>(wrappedValue: "coucou", key, suite: suite)
+        let cancellable = pdefaults2
+            .projectedValue
+            .dropFirst()
+            .sink {
+                XCTAssert($0 == newValue,
+                          "Second PDefaults should send proper value through its publisher when first one's value is"
+                          + " updated")
+            }
+        pdefaults1.wrappedValue = newValue
+        cancellable.cancel()
+    }
+
+    func testTwoPDefaultsReactiveDefaultValue() {
+        let defaultValue = "hallo"
+        let pdefaults1 = PDefaults<String?>(wrappedValue: nil, key, suite: suite)
+        pdefaults1.wrappedValue = "hello"
+        let pdefaults2 = PDefaults<String>(wrappedValue: defaultValue, key, suite: suite)
+        let cancellable = pdefaults2
+            .projectedValue
+            .dropFirst()
+            .sink {
+                XCTAssert($0 == defaultValue,
+                          "Second PDefaults should send proper value through its publisher when first one's value is"
+                          + " updated")
+            }
+        pdefaults1.wrappedValue = nil
         cancellable.cancel()
     }
 }
