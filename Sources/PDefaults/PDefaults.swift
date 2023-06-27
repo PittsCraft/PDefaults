@@ -70,6 +70,8 @@ public class PDefaults<Value>: NSObject {
         }
     }
 
+    private var isStoring = false
+
     /// Designated initializer
     ///
     /// - parameters:
@@ -282,11 +284,31 @@ public class PDefaults<Value>: NSObject {
     /// - parameters:
     ///    - value: the value to store
     private func store(value: Value) {
+        // Flag to avoid KVO to potentially decode a raw value while can expose it here directly
+        isStoring = true
+        var exposedValue = value
         do {
             let storedValue = try writeMapper(value)
             suite.set(storedValue, forKey: key)
         } catch {
             suite.removeObject(forKey: key)
+            exposedValue = defaultValue
+        }
+        isStoring = false
+        expose(value: exposedValue)
+    }
+
+    /// Expose a value to wrappedValue and send it through the publisher in the order defined by `behavior`
+    /// - parameters:
+    ///    - value: the value to expose
+    private func expose(value: Value) {
+        switch behavior {
+        case .didSet:
+            valueHolder = value
+            subjectHolder?.send(value)
+        case .willSet:
+            subjectHolder?.send(value)
+            valueHolder = value
         }
     }
 
@@ -309,18 +331,11 @@ public class PDefaults<Value>: NSObject {
                                       of object: Any?,
                                       change: [NSKeyValueChangeKey: Any]?,
                                       context: UnsafeMutableRawPointer?) {
-        guard keyPath == key, object as? UserDefaults == suite else {
+        guard !isStoring, keyPath == key, object as? UserDefaults == suite else {
             return
         }
         let value = valueFor(change: change)
-        switch behavior {
-        case .didSet:
-            valueHolder = value
-            subjectHolder?.send(value)
-        case .willSet:
-            subjectHolder?.send(value)
-            valueHolder = value
-        }
+        expose(value: value)
     }
 
     /// Property wrapper's wrapped value

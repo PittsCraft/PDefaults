@@ -1,24 +1,20 @@
 # PDefaults
 
-Provides concises and SwiftUI friendly [UserDefaults](https://developer.apple.com/documentation/foundation/userdefaults) storage with Combine publishing capability.
+Provides concise and SwiftUI friendly [UserDefaults](https://developer.apple.com/documentation/foundation/userdefaults) storage with Combine publishing capability.
 
 All regular `UserDefaults` compatible types and `Codable`types are supported (optional or not). 
 
 ## Use
 
 ```swift
-class Service {
-    @PDefaults("user.name")
-    var name = "Pitt"
-}
+@PDefaults("user.name")
+var name = "Pitt"
 
-let service = Service()
-
-let cancellable = service.$name.sink {
+let cancellable = $name.sink {
     print("Name: \($0)")
 }
 
-service.name = "François"
+name = "François"
 
 ```
 Prints:
@@ -26,19 +22,17 @@ Prints:
 Name: Pitt
 Name: François
 ```
-The value `"François"` is stored with key `"user.name"` in `UserDefaults.standard` and will be the value of the property `service.name` from now on even after killing the app. 
+The value `"François"` is stored with key `"user.name"` in `UserDefaults.standard` and will be the value of the property `name` from now on even after killing the app. 
 
 Store in another suite:
 
 ```swift
 
 // Remember kids: heroes don't do force unwrap!
-let notStandardSuite = UserDefaults(suiteName: "notStandard")!
+let appGroupSuite = UserDefaults(suiteName: "com.company.appgroup")!
 
-class Service {
-    @PDefaults("user.name", storage: notStandardSuite)
-    var name = "Pitt"
-}
+@PDefaults("user.name", storage: appGroupSuite)
+var name = "Pitt"
 ```
 
 ## Behavior
@@ -48,41 +42,33 @@ class Service {
 The initial value given to the property is the default value. The default value will be exposed until you set a non-nil value. When setting a nil value, the default value will be used.
 
 ```swift
-class Service {
-    @PDefaults("user.name")
-    var name: String? = "Pitt"
-}
+@PDefaults("user.name")
+var name: String? = "Pitt"
 
-let service = Service()
-
-let cancellable = service.$name.sink {
+let cancellable = $name.sink {
     print("New name: \($0)")
 } // Prints Pitt
 
-service.name = "François" // Prints François
-service.name = nil // Prints the default value: Pitt
+name = "François" // Prints François
+name = nil // Prints the default value: Pitt
 ```
 
 To avoid confusion, it is recommended to set the default value to `nil` for optional types.
 
 ### `@Published` like behavior
 
-`PDefaults` behaves as `@Published` by default.
+`PDefaults` behaves as `@Published` by default: it publishes any new value before exposing it as its wrapped value.
 
 ```swift
-class Service {
-    @PDefaults("user.name")
-    var name = "Pitt"
+@PDefaults("user.name")
+var name = "Pitt"
+
+let cancellable = $name.sink {
+    print("Published: \($0) - Property: \(name)")
 }
 
-let service = Service()
-
-let cancellable = service.$name.sink {
-    print("Published: \($0) - Property: \(service.name)")
-}
-
-service.name = "François"
-service.name = "Hubert"
+name = "François"
+name = "Hubert"
 ```
 
 Prints :
@@ -98,19 +84,15 @@ Published: Hubert - Property: François
 But you can make it behave like `CurrentValueSubject` using the `behavior` parameter.
 
 ```swift
-class Service {
-    @PDefaults("user.name", behavior: .didSet)
-    var name = "Pitt"
+@PDefaults("user.name", behavior: .didSet)
+var name = "Pitt"
+
+let cancellable = $name.sink {
+    print("Published: \($0) - Property: \(name)")
 }
 
-let service = Service()
-
-let cancellable = service.$name.sink {
-    print("Published: \($0) - Property: \(service.name)")
-}
-
-service.name = "François"
-service.name = "Hubert"
+name = "François"
+name = "Hubert"
 ```
 
 Prints :
@@ -120,6 +102,66 @@ Published: Pitt - Property: Pitt
 Published: François - Property: François
 Published: Hubert - Property: Hubert
 ```
+
+### App group sharing
+
+Apps of the same app group can share preferences through `UserDefaults` using suites named after the app group
+ identifier.
+  
+`PDefaults` plays well with this. If you change the stored value in one app and if any of the other apps in the group is 
+running and has a `PDefaults` instance on the right key, its publisher will be triggered with the new value. 
+
+In app A:
+
+```swift
+// Remember kids: heroes don't do force unwrap!
+let appGroupSuite = UserDefaults(suiteName: "com.company.appgroup")!
+
+@PDefaults("user.name", suite: appGroupSuite)
+var name = "Pitt"
+
+let cancellable = name.sink {
+    print("Published: \($0)")
+}
+
+```
+
+In app B:
+
+```swift
+// Remember kids: heroes don't do force unwrap!
+let appGroupSuite = UserDefaults(suiteName: "com.company.appgroup")!
+
+@PDefaults("user.name", suite: appGroupSuite)
+var name = "Pitt"
+
+name = "François" 
+```
+
+Then app A prints:
+
+```
+Published: François
+```
+
+### Multiple instances
+
+**It's an antipattern**. But if you still go with multiple instances:
+
+```swift
+@PDefaults("user.name", behavior: .didSet)
+var name = "Pitt"
+
+@PDefaults("user.name", behavior: .didSet)
+var otherName = "Pitt"
+```
+
+Then everything will run smoothly. Value changes on one instance will trigger the other instance's publisher, 
+and the wrapped values will be the same, still honoring each instance behavior __independently__.
+
+Note that it introduces a small overhead as decoding will occur in both instances when necessary.
+
+Also **it's an antipattern**, you can easily create infinite loops if one's publisher triggers the other's update.
 
 ## Performance
 
