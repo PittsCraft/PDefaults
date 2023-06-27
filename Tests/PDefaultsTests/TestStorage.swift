@@ -75,4 +75,31 @@ class TestStorage: XCTestCase {
                   "Distinct suite should contains the value set to wrappedValue")
         XCTAssert(pDefaults.wrappedValue == 2, "Wrapped value should expose the set value")
     }
+
+    func testTwoPDefaultsSameValueAfterLoadingThenChange() {
+        let pdefaults1 = PDefaults<String?>(wrappedValue: "coucou", key, suite: suite)
+        let pdefaults2 = PDefaults<String?>(wrappedValue: "coucou", key, suite: suite)
+        _ = pdefaults2.wrappedValue
+        pdefaults1.wrappedValue = "hello"
+        XCTAssert(pdefaults2.wrappedValue == pdefaults1.wrappedValue)
+    }
+
+    func testNilStorageReturnsDefault() {
+        let codable = CodableStruct(string: "youpi")
+        let pDefaults = PDefaults<CodableStruct?>(wrappedValue: codable, key, suite: suite)
+        pDefaults.wrappedValue = codable
+        pDefaults.wrappedValue = nil
+        XCTAssert(pDefaults.wrappedValue == codable, "When setting an optional value to nil, PDefaults should return"
+                  + " the default value")
+    }
+
+    func testTwoPDefaultsNilStorageReturnsDefault() {
+        let codable = CodableStruct(string: "youpi")
+        let otherCodable = CodableStruct(string: "hello")
+        let pDefaults = PDefaults<CodableStruct?>(wrappedValue: codable, key, suite: suite)
+        let pDefaults2 = PDefaults<CodableStruct?>(wrappedValue: otherCodable, key, suite: suite)
+        pDefaults.wrappedValue = nil
+        XCTAssert(pDefaults2.wrappedValue == otherCodable, "When setting an optional value to nil, PDefaults should"
+                  + " return the default value")
+    }
 }
