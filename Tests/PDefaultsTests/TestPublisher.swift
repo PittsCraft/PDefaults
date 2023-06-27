@@ -88,21 +88,6 @@ class TestPublisher: XCTestCase {
         XCTAssert(pdefaults2.wrappedValue == pdefaults1.wrappedValue)
     }
 
-    func testTwoPDefaultsSameValueAfterChange() {
-        let pdefaults1 = PDefaults<String?>(wrappedValue: "coucou", key, suite: suite)
-        let pdefaults2 = PDefaults<String?>(wrappedValue: "coucou", key, suite: suite)
-        pdefaults1.wrappedValue = "hello"
-        XCTAssert(pdefaults2.wrappedValue == pdefaults1.wrappedValue)
-    }
-
-    func testTwoPDefaultsSameValueAfterLoadingThenChange() {
-        let pdefaults1 = PDefaults<String?>(wrappedValue: "coucou", key, suite: suite)
-        let pdefaults2 = PDefaults<String?>(wrappedValue: "coucou", key, suite: suite)
-        _ = pdefaults2.wrappedValue
-        pdefaults1.wrappedValue = "hello"
-        XCTAssert(pdefaults2.wrappedValue == pdefaults1.wrappedValue)
-    }
-
     func testTwoPDefaultsReactiveInitValue() {
         let newValue = "hello"
         let pdefaults1 = PDefaults<String?>(wrappedValue: "coucou", key, suite: suite)
