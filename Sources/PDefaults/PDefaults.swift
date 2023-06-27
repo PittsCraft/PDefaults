@@ -70,6 +70,7 @@ public class PDefaults<Value>: NSObject {
         }
     }
 
+    /// Flag indicating there's a storage operation in progress and KVO notifications should be ignored
     private var isStoring = false
 
     /// Designated initializer
