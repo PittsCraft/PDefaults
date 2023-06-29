@@ -11,14 +11,16 @@ private typealias WriteMapper<Value> = (Value) throws -> Any
 /// Functions to map values read from storage to an expected type
 private typealias ReadMapper<Value> = (Any) throws -> Value
 
-@propertyWrapper
 /// A property wrapper for efficient and type safe `UserDefaults` storage and publication
-/// using an underlying `CurrentValueSubject`
+/// using a lazy underlying `CurrentValueSubject`
+@propertyWrapper
 public class PDefaults<Value>: NSObject {
 
     /// Behavior to publish before or after the wrapped value change
     public enum PublishingBehavior {
+        /// The new value will be published after the wrapped value changed
         case didSet
+        /// The new value will be published before the wrapped value changes
         case willSet
     }
 
@@ -251,18 +253,18 @@ public class PDefaults<Value>: NSObject {
                   readMapper: Value.readMapper)
     }
 
+    /// Constructor catching all type errors to expose compatibility constraints message
     @available(*, unavailable, message: "You can use PDefaults only types that either conform to Codable or are natively handled by UserDefaults")
     // swiftlint:disable:previous line_length
-    /// Constructor catching all type errors to expose compatibility constraints message
     public convenience init(_ key: String,
                             suite: UserDefaults = .standard,
                             behavior: PublishingBehavior = .willSet) {
         fatalError()
     }
 
+    /// Constructor catching all type errors to expose compatibility constraints message
     @available(*, unavailable, message: "You can use PDefaults only types that either conform to Codable or are natively handled by UserDefaults")
     // swiftlint:disable:previous line_length
-    /// Constructor catching all type errors to expose compatibility constraints message
     public convenience init<T>(wrappedValue defaultValue: T,
                                _ key: String,
                                suite: UserDefaults = .standard,

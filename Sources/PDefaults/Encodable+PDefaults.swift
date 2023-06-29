@@ -7,7 +7,9 @@
 
 import Foundation
 
+/// Encodable related errors
 enum EncodableError: Error {
+    /// Error thrown when the value to encode is nil
     case cannotEncodeNil
 }
 

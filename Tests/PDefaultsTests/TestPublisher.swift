@@ -1,6 +1,7 @@
 import XCTest
 import PDefaults
 
+// swiftlint:disable missing_docs
 class TestPublisher: XCTestCase {
 
     let key = "mickey"
@@ -135,3 +136,4 @@ class TestPublisher: XCTestCase {
         cancellable.cancel()
     }
 }
+// swiftlint:enable missing_docs

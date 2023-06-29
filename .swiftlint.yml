@@ -1,0 +1,13 @@
+opt_in_rules:
+  - local_doc_comment
+  - missing_docs
+
+missing_docs:
+  error:
+    - open
+    - public
+    - internal
+    - fileprivate
+    - private
+  excludes_extensions: false
+  excludes_inherited_types: false

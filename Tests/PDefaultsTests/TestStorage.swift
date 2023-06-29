@@ -1,6 +1,7 @@
 import XCTest
 import PDefaults
 
+// swiftlint:disable missing_docs
 class TestStorage: XCTestCase {
 
     let key = "mickey"
@@ -103,3 +104,4 @@ class TestStorage: XCTestCase {
                   + " return the default value")
     }
 }
+// swiftlint:enable missing_docs
