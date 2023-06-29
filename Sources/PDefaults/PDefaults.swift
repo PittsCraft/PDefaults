@@ -75,6 +75,9 @@ public class PDefaults<Value>: NSObject {
     /// Flag indicating there's a storage operation in progress and KVO notifications should be ignored
     private var isStoring = false
 
+    /// Whether this instance is mocked or not
+    private var isMocked: Bool { PDefaultsConfiguration.mock || mock }
+
     /// Designated initializer
     ///
     /// - parameters:
@@ -275,7 +278,7 @@ public class PDefaults<Value>: NSObject {
     /// Read the suite's stored value and falls back to the default value if the suite entry doesn't exist or is invalid
     ///  - returns the stored value or the default one
     private func loadValue() -> Value {
-        if let object = suite.object(forKey: key) {
+        if !isMocked, let object = suite.object(forKey: key) {
             do {
                 return try readMapper(object)
             } catch {}
@@ -292,9 +295,13 @@ public class PDefaults<Value>: NSObject {
         var exposedValue = value
         do {
             let storedValue = try writeMapper(value)
-            suite.set(storedValue, forKey: key)
+            if !isMocked {
+                suite.set(storedValue, forKey: key)
+            }
         } catch {
-            suite.removeObject(forKey: key)
+            if !isMocked {
+                suite.removeObject(forKey: key)
+            }
             exposedValue = defaultValue
         }
         isStoring = false
@@ -334,7 +341,10 @@ public class PDefaults<Value>: NSObject {
                                       of object: Any?,
                                       change: [NSKeyValueChangeKey: Any]?,
                                       context: UnsafeMutableRawPointer?) {
-        guard !isStoring, keyPath == key, object as? UserDefaults == suite else {
+        guard !isMocked,
+              !isStoring,
+              keyPath == key,
+              object as? UserDefaults == suite else {
             return
         }
         let value = valueFor(change: change)
@@ -349,4 +359,9 @@ public class PDefaults<Value>: NSObject {
 
     /// Property wrapper's projected value
     public lazy var projectedValue: AnyPublisher<Value, Never> = { subject.eraseToAnyPublisher() }()
+
+    /// Whether this specific instance should be mocked or not
+    ///
+    /// This flag should be set before accessing the wrapped value or the projected value.
+    public var mock = false
 }

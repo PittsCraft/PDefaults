@@ -10,6 +10,7 @@ class TestPublisher: XCTestCase {
     override func setUp() {
         super.setUp()
         suite.removeObject(forKey: key)
+        PDefaultsConfiguration.mock = false
     }
 
     override func tearDown() {
@@ -18,11 +19,12 @@ class TestPublisher: XCTestCase {
 
     func testClosureCalledOnSink() {
         let pdefaults = PDefaults(wrappedValue: 1, key, suite: suite)
-        var called = false
+        let expectCalled = expectation(description: "PDefaults publisher sink closure is expected to be called on"
+                                       + " subscription")
         let cancellable = pdefaults.projectedValue.sink { _ in
-            called = true
+            expectCalled.fulfill()
         }
-        XCTAssert(called, "Sink closure is expected to be called on subscription")
+        waitForExpectations(timeout: 0)
         cancellable.cancel()
     }
 
@@ -40,14 +42,12 @@ class TestPublisher: XCTestCase {
     func testPresentingValueWhilePublishing() {
         let newValue = 2
         let pdefaults = PDefaults(wrappedValue: 1, key, suite: suite, behavior: .didSet)
-        var isFirstReceive = true
-        let cancellable = pdefaults.projectedValue.sink { _ in
-            if !isFirstReceive {
+        let cancellable = pdefaults.projectedValue
+            .dropFirst()
+            .sink { _ in
                 XCTAssert(pdefaults.wrappedValue == newValue,
                           "While sinking, the directly accessed value should be the current one")
             }
-            isFirstReceive = false
-        }
         pdefaults.wrappedValue = 2
         cancellable.cancel()
     }
@@ -134,6 +134,82 @@ class TestPublisher: XCTestCase {
             }
         pdefaults1.wrappedValue = nil
         cancellable.cancel()
+    }
+
+    func testLocallyMockedPublisher() {
+        let defaultValue = "coucou"
+        let pdefaults1 = PDefaults<String?>(wrappedValue: defaultValue, key, suite: suite)
+        pdefaults1.wrappedValue = "hello"
+        let pdefaults2 = PDefaults<String?>(wrappedValue: defaultValue, key, suite: suite)
+        pdefaults2.mock = true
+        let cancellable = pdefaults2
+            .projectedValue
+            .sink {
+                XCTAssert($0 == defaultValue,
+                          "When locally mocked, the stored value should be ignored")
+            }
+        cancellable.cancel()
+    }
+
+    func testGloballyMockedPublisher() {
+        let defaultValue = "coucou"
+        let pdefaults1 = PDefaults<String?>(wrappedValue: defaultValue, key, suite: suite)
+        pdefaults1.wrappedValue = "hello"
+        let pdefaults2 = PDefaults<String?>(wrappedValue: defaultValue, key, suite: suite)
+        PDefaultsConfiguration.mock = true
+        let cancellable = pdefaults2
+            .projectedValue
+            .sink {
+                XCTAssert($0 == defaultValue,
+                          "When globally mocked, the stored value should be ignored")
+            }
+        cancellable.cancel()
+    }
+
+    func testLocallyMockedValueChange() {
+        let defaultValue = "coucou"
+        let newValue = "hello"
+        let pdefaults1 = PDefaults<String?>(wrappedValue: defaultValue, key, suite: suite)
+        let pdefaults2 = PDefaults<String?>(wrappedValue: defaultValue, key, suite: suite)
+        pdefaults2.mock = true
+        pdefaults2.wrappedValue = newValue
+        let cancellable = pdefaults1
+            .projectedValue
+            .sink {
+                XCTAssert($0 == defaultValue,
+                          "When locally mocked, the value change of an instance should not affect the unmocked one")
+            }
+        let cancellable2 = pdefaults2
+            .projectedValue
+            .sink {
+                XCTAssert($0 == newValue,
+                          "When locally mocked, the value change should be published")
+            }
+        cancellable.cancel()
+        cancellable2.cancel()
+    }
+
+    func testGloballyMockedValueChange() {
+        let defaultValue = "coucou"
+        let newValue = "hello"
+        let pdefaults1 = PDefaults<String?>(wrappedValue: defaultValue, key, suite: suite)
+        let pdefaults2 = PDefaults<String?>(wrappedValue: defaultValue, key, suite: suite)
+        PDefaultsConfiguration.mock = true
+        pdefaults2.wrappedValue = newValue
+        let cancellable = pdefaults1
+            .projectedValue
+            .sink {
+                XCTAssert($0 == defaultValue,
+                          "When globally mocked, the value change of an instance should not affect the unmocked one")
+            }
+        let cancellable2 = pdefaults2
+            .projectedValue
+            .sink {
+                XCTAssert($0 == newValue,
+                          "When globally mocked, the value change should be published")
+            }
+        cancellable.cancel()
+        cancellable2.cancel()
     }
 }
 // swiftlint:enable missing_docs
