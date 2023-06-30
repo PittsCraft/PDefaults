@@ -21,15 +21,17 @@ public extension PDefaults {
     convenience init(wrappedValue defaultValue: Value,
                      _ key: String,
                      suite: UserDefaults = .standard,
-                     behavior: PublishingBehavior = .didSet) where Value: UserDefaultsStorable {
+                     behavior: PublishingBehavior = .didSet,
+                     migration: Migration<Value>? = nil) where Value: UserDefaultsStorable {
         self.init(wrappedValue: defaultValue,
                   key,
                   suite: suite,
                   behavior: behavior,
                   writeMapper: Value.writeMapper,
-                  readMapper: Value.readMapper)
+                  readMapper: Value.readMapper,
+                  migration: migration)
     }
-    
+
     /// Initializer
     ///
     /// For optional UserDefault's natively compatible types
@@ -43,16 +45,18 @@ public extension PDefaults {
         wrappedValue defaultValue: Value,
         _ key: String,
         suite: UserDefaults = .standard,
-        behavior: PublishingBehavior = .didSet
+        behavior: PublishingBehavior = .didSet,
+        migration: Migration<Value>? = nil
     ) where Value == T?, T: UserDefaultsStorable {
         self.init(wrappedValue: defaultValue,
                   key,
                   suite: suite,
                   behavior: behavior,
                   writeMapper: Value.writeMapper,
-                  readMapper: Value.readMapper)
+                  readMapper: Value.readMapper,
+                  migration: migration)
     }
-    
+
     /// Initializer
     ///
     /// For optional UserDefault's natively compatible types with implicit default value = `nil`
@@ -64,16 +68,18 @@ public extension PDefaults {
     convenience init<T>(
         _ key: String,
         suite: UserDefaults = .standard,
-        behavior: PublishingBehavior = .didSet
+        behavior: PublishingBehavior = .didSet,
+        migration: Migration<Value>? = nil
     ) where Value == T?, T: UserDefaultsStorable {
         self.init(wrappedValue: nil,
                   key,
                   suite: suite,
                   behavior: behavior,
                   writeMapper: Value.writeMapper,
-                  readMapper: Value.readMapper)
+                  readMapper: Value.readMapper,
+                  migration: migration)
     }
-    
+
     /// Initializer
     ///
     /// For `Codable` types
@@ -86,15 +92,17 @@ public extension PDefaults {
     convenience init(wrappedValue defaultValue: Value,
                      _ key: String,
                      suite: UserDefaults = .standard,
-                     behavior: PublishingBehavior = .didSet) where Value: Codable {
+                     behavior: PublishingBehavior = .didSet,
+                     migration: Migration<Value>? = nil) where Value: Codable {
         self.init(wrappedValue: defaultValue,
                   key,
                   suite: suite,
                   behavior: behavior,
                   writeMapper: Value.codableWriteMapper,
-                  readMapper: Value.decodableReadMapper)
+                  readMapper: Value.decodableReadMapper,
+                  migration: migration)
     }
-    
+
     /// Initializer
     ///
     /// For optional `Codable` types with implicit default value = `nil`
@@ -105,15 +113,17 @@ public extension PDefaults {
     ///    - behavior: behavior to publish before or after the wrapped value change
     convenience init<T>(_ key: String,
                         suite: UserDefaults = .standard,
-                        behavior: PublishingBehavior = .didSet) where Value == T?, T: Codable {
+                        behavior: PublishingBehavior = .didSet,
+                        migration: Migration<Value>? = nil) where Value == T?, T: Codable {
         self.init(wrappedValue: nil,
                   key,
                   suite: suite,
                   behavior: behavior,
                   writeMapper: Value.codableWriteMapper,
-                  readMapper: Value.decodableReadMapper)
+                  readMapper: Value.decodableReadMapper,
+                  migration: migration)
     }
-    
+
     /// Initializer
     ///
     /// Disambiguation initializer to choose native UserDefaults value mapping
@@ -126,15 +136,17 @@ public extension PDefaults {
     convenience init(wrappedValue defaultValue: Value,
                      _ key: String,
                      suite: UserDefaults = .standard,
-                     behavior: PublishingBehavior = .didSet) where Value: Codable & UserDefaultsStorable {
+                     behavior: PublishingBehavior = .didSet,
+                     migration: Migration<Value>? = nil) where Value: Codable & UserDefaultsStorable {
         self.init(wrappedValue: defaultValue,
                   key,
                   suite: suite,
                   behavior: behavior,
                   writeMapper: Value.writeMapper,
-                  readMapper: Value.readMapper)
+                  readMapper: Value.readMapper,
+                  migration: migration)
     }
-    
+
     /// Initializer
     ///
     /// Disambiguation initializer to choose native UserDefaults value mapping for optional `Codable`
@@ -147,32 +159,36 @@ public extension PDefaults {
     convenience init<T>(
         _ key: String,
         suite: UserDefaults = .standard,
-        behavior: PublishingBehavior = .didSet
+        behavior: PublishingBehavior = .didSet,
+        migration: Migration<Value>? = nil
     ) where Value == T?, T: Codable & UserDefaultsStorable {
         self.init(wrappedValue: nil,
                   key,
                   suite: suite,
                   behavior: behavior,
                   writeMapper: Value.writeMapper,
-                  readMapper: Value.readMapper)
+                  readMapper: Value.readMapper,
+                  migration: migration)
     }
-    
+
     /// Constructor catching all type errors to expose compatibility constraints message
     @available(*, unavailable, message: "You can use PDefaults only types that either conform to Codable or are natively handled by UserDefaults")
     // swiftlint:disable:previous line_length
     convenience init(_ key: String,
                      suite: UserDefaults = .standard,
-                     behavior: PublishingBehavior = .didSet) {
+                     behavior: PublishingBehavior = .didSet,
+                     migration: Migration<Value>? = nil) {
         fatalError()
     }
-    
+
     /// Constructor catching all type errors to expose compatibility constraints message
     @available(*, unavailable, message: "You can use PDefaults only types that either conform to Codable or are natively handled by UserDefaults")
     // swiftlint:disable:previous line_length
     convenience init<T>(wrappedValue defaultValue: T,
                         _ key: String,
                         suite: UserDefaults = .standard,
-                        behavior: PublishingBehavior = .didSet) {
+                        behavior: PublishingBehavior = .didSet,
+                        migration: Migration<Value>? = nil) {
         fatalError()
     }
 }

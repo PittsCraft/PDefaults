@@ -87,7 +87,8 @@ public class PDefaults<Value>: NSObject {
          suite: UserDefaults,
          behavior: PublishingBehavior,
          writeMapper: @escaping (Value) throws -> Any,
-         readMapper: @escaping (Any) throws -> Value) {
+         readMapper: @escaping (Any) throws -> Value,
+         migration: Migration<Value>?) {
         self.defaultValue = defaultValue
         self.key = key
         self.suite = suite
@@ -95,6 +96,7 @@ public class PDefaults<Value>: NSObject {
         self.writeMapper = writeMapper
         self.readMapper = readMapper
         super.init()
+        self.migrate(migration: migration)
         suite.addObserver(self, forKeyPath: key, options: .new, context: nil)
     }
 
@@ -103,7 +105,18 @@ public class PDefaults<Value>: NSObject {
         suite.removeObserver(self, forKeyPath: key)
     }
 
+    /// Perform migration when any and relevant
+    ///
+    /// - parameters:
+    ///    - migration: the migration to perform
+    private func migrate(migration: Migration<Value>?) {
+        guard let source = migration, source.shouldPerform() else { return }
+        store(value: source.value())
+        source.onDone()
+    }
+
     /// Read the suite's stored value and falls back to the default value if the suite entry doesn't exist or is invalid
+    ///
     ///  - returns the stored value or the default one
     private func loadValue() -> Value {
         if !isMocked, let object = suite.object(forKey: key) {
@@ -115,6 +128,7 @@ public class PDefaults<Value>: NSObject {
     }
 
     /// Store the value in suite
+    ///
     /// - parameters:
     ///    - value: the value to store
     private func store(value: Value) {
@@ -137,6 +151,7 @@ public class PDefaults<Value>: NSObject {
     }
 
     /// Expose a value to wrappedValue and send it through the publisher in the order defined by `behavior`
+    /// 
     /// - parameters:
     ///    - value: the value to expose
     private func expose(value: Value) {
@@ -162,6 +177,17 @@ public class PDefaults<Value>: NSObject {
             } catch {}
         }
         return defaultValue
+    }
+
+    /// Check if the underlying suite has a stored value for this key
+    /// - returns `true` when the suite has a stored value for this key
+    func hasStoredValue() -> Bool {
+        suite.object(forKey: key) != nil
+    }
+
+    /// Reset to default value
+    func reset() {
+        suite.removeObject(forKey: key)
     }
 
     // swiftlint:disable:next block_based_kvo
