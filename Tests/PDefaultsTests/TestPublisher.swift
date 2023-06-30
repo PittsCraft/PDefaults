@@ -177,7 +177,7 @@ class TestPublisher: XCTestCase {
             .projectedValue
             .sink {
                 XCTAssert($0 == defaultValue,
-                          "When locally mocked, the value change of an instance should not affect the unmocked one")
+                          "When locally mocked, the value change of an instance should not affect other ones")
             }
         let cancellable2 = pdefaults2
             .projectedValue
@@ -200,7 +200,7 @@ class TestPublisher: XCTestCase {
             .projectedValue
             .sink {
                 XCTAssert($0 == defaultValue,
-                          "When globally mocked, the value change of an instance should not affect the unmocked one")
+                          "When globally mocked, the value change of an instance should not affect other ones")
             }
         let cancellable2 = pdefaults2
             .projectedValue
