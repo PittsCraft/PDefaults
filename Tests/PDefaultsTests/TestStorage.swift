@@ -10,6 +10,7 @@ class TestStorage: XCTestCase {
     override func setUp() {
         super.setUp()
         suite.removeObject(forKey: key)
+        PDefaultsConfiguration.mock = false
     }
 
     override func tearDown() {
@@ -90,8 +91,8 @@ class TestStorage: XCTestCase {
         let pDefaults = PDefaults<CodableStruct?>(wrappedValue: codable, key, suite: suite)
         pDefaults.wrappedValue = codable
         pDefaults.wrappedValue = nil
-        XCTAssert(pDefaults.wrappedValue == codable, "When setting an optional value to nil, PDefaults should return"
-                  + " the default value")
+        XCTAssert(pDefaults.wrappedValue == codable,
+                  "When setting an optional value to nil, PDefaults should return the default value")
     }
 
     func testTwoPDefaultsNilStorageReturnsDefault() {
@@ -100,8 +101,56 @@ class TestStorage: XCTestCase {
         let pDefaults = PDefaults<CodableStruct?>(wrappedValue: codable, key, suite: suite)
         let pDefaults2 = PDefaults<CodableStruct?>(wrappedValue: otherCodable, key, suite: suite)
         pDefaults.wrappedValue = nil
-        XCTAssert(pDefaults2.wrappedValue == otherCodable, "When setting an optional value to nil, PDefaults should"
-                  + " return the default value")
+        XCTAssert(pDefaults2.wrappedValue == otherCodable,
+                  "When setting an optional value to nil, PDefaults should return the default value")
+    }
+
+    func testLocalMockNoStorageWriting() {
+        let pDefaults = PDefaults<Int?>(wrappedValue: nil, key, suite: suite)
+        pDefaults.mock = true
+        pDefaults.wrappedValue = 2
+        XCTAssert(suite.object(forKey: key) == nil,
+                  "Nothing should be stored to UserDefaults when a locally mocked PDefaults is set a wrapped value")
+    }
+
+    func testLocalMockNoStorageReading() {
+        let pDefaults = PDefaults<Int?>(wrappedValue: nil, key, suite: suite)
+        pDefaults.mock = true
+        suite.set(1, forKey: key)
+        XCTAssert(pDefaults.wrappedValue == nil,
+                  "PDefaults should not read anything from storage when globally mocked")
+    }
+
+    func testGlobalMockNoStorageWriting() {
+        let pDefaults = PDefaults<Int?>(wrappedValue: nil, key, suite: suite)
+        PDefaultsConfiguration.mock = true
+        pDefaults.wrappedValue = 2
+        XCTAssert(suite.object(forKey: key) == nil,
+                  "Nothing should be stored to UserDefaults when a globally mocked PDefaults is set a wrapped value")
+    }
+
+    func testGlobalMockNoStorageReading() {
+        let pDefaults = PDefaults<Int?>(wrappedValue: nil, key, suite: suite)
+        PDefaultsConfiguration.mock = true
+        suite.set(1, forKey: key)
+        XCTAssert(pDefaults.wrappedValue == nil,
+                  "PDefaults should not read anything from storage when globally mocked")
+    }
+
+    func testLocalMockWritingRightValue() {
+        let pDefaults = PDefaults<Int?>(wrappedValue: nil, key, suite: suite)
+        pDefaults.mock = true
+        pDefaults.wrappedValue = 2
+        XCTAssert(pDefaults.wrappedValue == 2,
+                  "When locally mocked, PDefaults should still hold the last value affected to it")
+    }
+
+    func testGlobalMockWritingRightValue() {
+        let pDefaults = PDefaults<Int?>(wrappedValue: nil, key, suite: suite)
+        PDefaultsConfiguration.mock = true
+        pDefaults.wrappedValue = 2
+        XCTAssert(pDefaults.wrappedValue == 2,
+                  "When globally mocked, PDefaults should still hold the last value affected to it")
     }
 }
 // swiftlint:enable missing_docs

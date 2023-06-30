@@ -39,6 +39,8 @@ var name = "Pitt"
 
 ### Default value and `nil`
 
+> To avoid confusion, it is recommended to set the default value to `nil` for optional types.
+
 The initial value given to the property is the default value. The default value will be exposed until you set a non-nil value. When setting a nil value, the default value will be used.
 
 ```swift
@@ -52,8 +54,6 @@ let cancellable = $name.sink {
 name = "François" // Prints François
 name = nil // Prints the default value: Pitt
 ```
-
-To avoid confusion, it is recommended to set the default value to `nil` for optional types.
 
 ### `@Published` like behavior
 
@@ -162,6 +162,30 @@ and the wrapped values will be the same, still honoring each instance behavior _
 Note that it introduces a small overhead as decoding will occur in both instances when necessary.
 
 Also **it's an antipattern**, you can easily create infinite loops if one's publisher triggers the other's update.
+
+### Mock
+
+You can mock an instance by setting its `mock` property to `true`.
+
+```swift
+@PDefaults("user.name")
+var name = "Pitt"
+
+_name.mock = true
+```
+
+Then:
+- the underlying suite will never be read or written
+- the app group sharing will obviously not work
+
+Note that the instance will ignore the stored value only if the mock flag is set before any access to the wrapped value
+or the projected value.
+
+You can also mock all instances using the global configuration `mock` property.
+
+```swift
+PDefaultsConfiguration.mock = true
+``` 
 
 ## Performance
 
