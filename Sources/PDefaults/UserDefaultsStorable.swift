@@ -24,8 +24,11 @@ extension Array: UserDefaultsStorable where Element: UserDefaultsStorable {}
 extension Dictionary: UserDefaultsStorable where Key == String, Value: UserDefaultsStorable {}
 extension Optional: UserDefaultsStorable where Wrapped: UserDefaultsStorable {}
 
+/// Errors related to `UserDefaultStorable` types
 enum UserDefaultsStorableError: Error {
+    /// Stored object could not be cast to the expected type
     case cannotCastToType(Any.Type)
+    /// Value is nil and cannot be mapped for storage
     case cannotStoreNil
 }
 

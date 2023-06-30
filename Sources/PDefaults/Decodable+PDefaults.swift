@@ -7,7 +7,9 @@
 
 import Foundation
 
+/// Decodable related errors
 enum DecodableError: Error {
+    /// Error thrown when either the stored object is nil, or cannot be cast to data
     case cannotCastStoredObjectAsData(Any?)
 }
 
