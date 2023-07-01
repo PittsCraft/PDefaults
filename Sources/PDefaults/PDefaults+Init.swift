@@ -29,7 +29,7 @@ public extension PDefaults {
                   writeMapper: Value.writeMapper,
                   readMapper: Value.readMapper)
     }
-    
+
     /// Initializer
     ///
     /// For optional UserDefault's natively compatible types
@@ -43,8 +43,7 @@ public extension PDefaults {
         wrappedValue defaultValue: Value,
         _ key: String,
         suite: UserDefaults = .standard,
-        behavior: PublishingBehavior = .didSet
-    ) where Value == T?, T: UserDefaultsStorable {
+        behavior: PublishingBehavior = .didSet) where Value == T?, T: UserDefaultsStorable {
         self.init(wrappedValue: defaultValue,
                   key,
                   suite: suite,
@@ -52,7 +51,7 @@ public extension PDefaults {
                   writeMapper: Value.writeMapper,
                   readMapper: Value.readMapper)
     }
-    
+
     /// Initializer
     ///
     /// For optional UserDefault's natively compatible types with implicit default value = `nil`
@@ -64,8 +63,7 @@ public extension PDefaults {
     convenience init<T>(
         _ key: String,
         suite: UserDefaults = .standard,
-        behavior: PublishingBehavior = .didSet
-    ) where Value == T?, T: UserDefaultsStorable {
+        behavior: PublishingBehavior = .didSet) where Value == T?, T: UserDefaultsStorable {
         self.init(wrappedValue: nil,
                   key,
                   suite: suite,
@@ -73,7 +71,7 @@ public extension PDefaults {
                   writeMapper: Value.writeMapper,
                   readMapper: Value.readMapper)
     }
-    
+
     /// Initializer
     ///
     /// For `Codable` types
@@ -94,7 +92,7 @@ public extension PDefaults {
                   writeMapper: Value.codableWriteMapper,
                   readMapper: Value.decodableReadMapper)
     }
-    
+
     /// Initializer
     ///
     /// For optional `Codable` types with implicit default value = `nil`
@@ -113,7 +111,7 @@ public extension PDefaults {
                   writeMapper: Value.codableWriteMapper,
                   readMapper: Value.decodableReadMapper)
     }
-    
+
     /// Initializer
     ///
     /// Disambiguation initializer to choose native UserDefaults value mapping
@@ -134,7 +132,7 @@ public extension PDefaults {
                   writeMapper: Value.writeMapper,
                   readMapper: Value.readMapper)
     }
-    
+
     /// Initializer
     ///
     /// Disambiguation initializer to choose native UserDefaults value mapping for optional `Codable`
@@ -147,8 +145,7 @@ public extension PDefaults {
     convenience init<T>(
         _ key: String,
         suite: UserDefaults = .standard,
-        behavior: PublishingBehavior = .didSet
-    ) where Value == T?, T: Codable & UserDefaultsStorable {
+        behavior: PublishingBehavior = .didSet) where Value == T?, T: Codable & UserDefaultsStorable {
         self.init(wrappedValue: nil,
                   key,
                   suite: suite,
@@ -156,7 +153,7 @@ public extension PDefaults {
                   writeMapper: Value.writeMapper,
                   readMapper: Value.readMapper)
     }
-    
+
     /// Constructor catching all type errors to expose compatibility constraints message
     @available(*, unavailable, message: "You can use PDefaults only types that either conform to Codable or are natively handled by UserDefaults")
     // swiftlint:disable:previous line_length
@@ -165,7 +162,7 @@ public extension PDefaults {
                      behavior: PublishingBehavior = .didSet) {
         fatalError()
     }
-    
+
     /// Constructor catching all type errors to expose compatibility constraints message
     @available(*, unavailable, message: "You can use PDefaults only types that either conform to Codable or are natively handled by UserDefaults")
     // swiftlint:disable:previous line_length

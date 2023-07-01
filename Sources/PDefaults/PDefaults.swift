@@ -104,6 +104,7 @@ public class PDefaults<Value>: NSObject {
     }
 
     /// Read the suite's stored value and falls back to the default value if the suite entry doesn't exist or is invalid
+    ///
     ///  - returns the stored value or the default one
     private func loadValue() -> Value {
         if !isMocked, let object = suite.object(forKey: key) {
@@ -115,6 +116,7 @@ public class PDefaults<Value>: NSObject {
     }
 
     /// Store the value in suite
+    ///
     /// - parameters:
     ///    - value: the value to store
     private func store(value: Value) {
@@ -137,6 +139,7 @@ public class PDefaults<Value>: NSObject {
     }
 
     /// Expose a value to wrappedValue and send it through the publisher in the order defined by `behavior`
+    /// 
     /// - parameters:
     ///    - value: the value to expose
     private func expose(value: Value) {
@@ -164,19 +167,10 @@ public class PDefaults<Value>: NSObject {
         return defaultValue
     }
 
-    // swiftlint:disable:next block_based_kvo
-    public override func observeValue(forKeyPath keyPath: String?,
-                                      of object: Any?,
-                                      change: [NSKeyValueChangeKey: Any]?,
-                                      context: UnsafeMutableRawPointer?) {
-        guard !isMocked,
-              !isStoring,
-              keyPath == key,
-              object as? UserDefaults == suite else {
-            return
-        }
-        let value = valueFor(change: change)
-        expose(value: value)
+    /// Check if the underlying suite has a stored value for this key
+    /// - returns `true` when the suite has a stored value for this key
+    func hasStoredValue() -> Bool {
+        suite.object(forKey: key) != nil
     }
 
     /// Property wrapper's wrapped value
@@ -192,4 +186,46 @@ public class PDefaults<Value>: NSObject {
     ///
     /// This flag should be set before accessing the wrapped value or the projected value.
     public var mock = false
+
+    /// Reset to default value (no stored value)
+    public func reset() {
+        suite.removeObject(forKey: key)
+    }
+
+    /// Perform migration if there's a stored value.
+    ///
+    /// When there's a stored value and this function is called, a migration is tried.
+    /// When successful, the stored value is reset, preventing any future migration.
+    /// If the mapper throws, the migration is aborted with no side effect.
+    ///
+    /// - parameters:
+    ///    - pDefaults: the migration destination
+    ///    - map: a value mapper, defaults to identity
+    public func migrate<TargetValue>(to pDefaults: PDefaults<TargetValue>,
+                                     _ map: (Value) throws -> TargetValue = { (value: Value) in value }) {
+        guard hasStoredValue() else { return }
+        do {
+            let value = try map(value)
+            pDefaults.store(value: value)
+            reset()
+        } catch {
+            print("Couldn't map value for migration, keys: \(key) => \(pDefaults.key),"
+                  + " error: \(error.localizedDescription)")
+        }
+    }
+
+    // swiftlint:disable:next block_based_kvo
+    public override func observeValue(forKeyPath keyPath: String?,
+                                      of object: Any?,
+                                      change: [NSKeyValueChangeKey: Any]?,
+                                      context: UnsafeMutableRawPointer?) {
+        guard !isMocked,
+              !isStoring,
+              keyPath == key,
+              object as? UserDefaults == suite else {
+            return
+        }
+        let value = valueFor(change: change)
+        expose(value: value)
+    }
 }
