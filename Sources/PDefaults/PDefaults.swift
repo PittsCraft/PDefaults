@@ -87,8 +87,7 @@ public class PDefaults<Value>: NSObject {
          suite: UserDefaults,
          behavior: PublishingBehavior,
          writeMapper: @escaping (Value) throws -> Any,
-         readMapper: @escaping (Any) throws -> Value,
-         migration: Migration<Value>?) {
+         readMapper: @escaping (Any) throws -> Value) {
         self.defaultValue = defaultValue
         self.key = key
         self.suite = suite
@@ -96,23 +95,12 @@ public class PDefaults<Value>: NSObject {
         self.writeMapper = writeMapper
         self.readMapper = readMapper
         super.init()
-        self.migrate(migration: migration)
         suite.addObserver(self, forKeyPath: key, options: .new, context: nil)
     }
 
     /// Deinit
     deinit {
         suite.removeObserver(self, forKeyPath: key)
-    }
-
-    /// Perform migration when any and relevant
-    ///
-    /// - parameters:
-    ///    - migration: the migration to perform
-    private func migrate(migration: Migration<Value>?) {
-        guard let source = migration, source.shouldPerform() else { return }
-        store(value: source.value())
-        source.onDone()
     }
 
     /// Read the suite's stored value and falls back to the default value if the suite entry doesn't exist or is invalid
@@ -185,9 +173,45 @@ public class PDefaults<Value>: NSObject {
         suite.object(forKey: key) != nil
     }
 
-    /// Reset to default value
-    func reset() {
+    /// Property wrapper's wrapped value
+    public var wrappedValue: Value {
+        get { value }
+        set { store(value: newValue) }
+    }
+
+    /// Property wrapper's projected value
+    public lazy var projectedValue: AnyPublisher<Value, Never> = { subject.eraseToAnyPublisher() }()
+
+    /// Whether this specific instance should be mocked or not
+    ///
+    /// This flag should be set before accessing the wrapped value or the projected value.
+    public var mock = false
+
+    /// Reset to default value (no stored value)
+    public func reset() {
         suite.removeObject(forKey: key)
+    }
+
+    /// Perform migration if there's a stored value.
+    ///
+    /// When there's a stored value and this function is called, a migration is tried.
+    /// When successful, the stored value is reset, preventing any future migration.
+    /// If the mapper throws, the migration is aborted with no side effect.
+    ///
+    /// - parameters:
+    ///    - pDefaults: the migration destination
+    ///    - map: a value mapper, defaults to identity
+    public func migrate<TargetValue>(to pDefaults: PDefaults<TargetValue>,
+                                     _ map: (Value) throws -> TargetValue = { (value: Value) in value }) {
+        guard hasStoredValue() else { return }
+        do {
+            let value = try map(value)
+            pDefaults.store(value: value)
+            reset()
+        } catch {
+            print("Couldn't map value for migration, keys: \(key) => \(pDefaults.key),"
+                  + " error: \(error.localizedDescription)")
+        }
     }
 
     // swiftlint:disable:next block_based_kvo
@@ -204,18 +228,4 @@ public class PDefaults<Value>: NSObject {
         let value = valueFor(change: change)
         expose(value: value)
     }
-
-    /// Property wrapper's wrapped value
-    public var wrappedValue: Value {
-        get { value }
-        set { store(value: newValue) }
-    }
-
-    /// Property wrapper's projected value
-    public lazy var projectedValue: AnyPublisher<Value, Never> = { subject.eraseToAnyPublisher() }()
-
-    /// Whether this specific instance should be mocked or not
-    ///
-    /// This flag should be set before accessing the wrapped value or the projected value.
-    public var mock = false
 }

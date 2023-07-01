@@ -21,15 +21,13 @@ public extension PDefaults {
     convenience init(wrappedValue defaultValue: Value,
                      _ key: String,
                      suite: UserDefaults = .standard,
-                     behavior: PublishingBehavior = .didSet,
-                     migration: Migration<Value>? = nil) where Value: UserDefaultsStorable {
+                     behavior: PublishingBehavior = .didSet) where Value: UserDefaultsStorable {
         self.init(wrappedValue: defaultValue,
                   key,
                   suite: suite,
                   behavior: behavior,
                   writeMapper: Value.writeMapper,
-                  readMapper: Value.readMapper,
-                  migration: migration)
+                  readMapper: Value.readMapper)
     }
 
     /// Initializer
@@ -45,16 +43,13 @@ public extension PDefaults {
         wrappedValue defaultValue: Value,
         _ key: String,
         suite: UserDefaults = .standard,
-        behavior: PublishingBehavior = .didSet,
-        migration: Migration<Value>? = nil
-    ) where Value == T?, T: UserDefaultsStorable {
+        behavior: PublishingBehavior = .didSet) where Value == T?, T: UserDefaultsStorable {
         self.init(wrappedValue: defaultValue,
                   key,
                   suite: suite,
                   behavior: behavior,
                   writeMapper: Value.writeMapper,
-                  readMapper: Value.readMapper,
-                  migration: migration)
+                  readMapper: Value.readMapper)
     }
 
     /// Initializer
@@ -68,16 +63,13 @@ public extension PDefaults {
     convenience init<T>(
         _ key: String,
         suite: UserDefaults = .standard,
-        behavior: PublishingBehavior = .didSet,
-        migration: Migration<Value>? = nil
-    ) where Value == T?, T: UserDefaultsStorable {
+        behavior: PublishingBehavior = .didSet) where Value == T?, T: UserDefaultsStorable {
         self.init(wrappedValue: nil,
                   key,
                   suite: suite,
                   behavior: behavior,
                   writeMapper: Value.writeMapper,
-                  readMapper: Value.readMapper,
-                  migration: migration)
+                  readMapper: Value.readMapper)
     }
 
     /// Initializer
@@ -92,15 +84,13 @@ public extension PDefaults {
     convenience init(wrappedValue defaultValue: Value,
                      _ key: String,
                      suite: UserDefaults = .standard,
-                     behavior: PublishingBehavior = .didSet,
-                     migration: Migration<Value>? = nil) where Value: Codable {
+                     behavior: PublishingBehavior = .didSet) where Value: Codable {
         self.init(wrappedValue: defaultValue,
                   key,
                   suite: suite,
                   behavior: behavior,
                   writeMapper: Value.codableWriteMapper,
-                  readMapper: Value.decodableReadMapper,
-                  migration: migration)
+                  readMapper: Value.decodableReadMapper)
     }
 
     /// Initializer
@@ -113,15 +103,13 @@ public extension PDefaults {
     ///    - behavior: behavior to publish before or after the wrapped value change
     convenience init<T>(_ key: String,
                         suite: UserDefaults = .standard,
-                        behavior: PublishingBehavior = .didSet,
-                        migration: Migration<Value>? = nil) where Value == T?, T: Codable {
+                        behavior: PublishingBehavior = .didSet) where Value == T?, T: Codable {
         self.init(wrappedValue: nil,
                   key,
                   suite: suite,
                   behavior: behavior,
                   writeMapper: Value.codableWriteMapper,
-                  readMapper: Value.decodableReadMapper,
-                  migration: migration)
+                  readMapper: Value.decodableReadMapper)
     }
 
     /// Initializer
@@ -136,15 +124,13 @@ public extension PDefaults {
     convenience init(wrappedValue defaultValue: Value,
                      _ key: String,
                      suite: UserDefaults = .standard,
-                     behavior: PublishingBehavior = .didSet,
-                     migration: Migration<Value>? = nil) where Value: Codable & UserDefaultsStorable {
+                     behavior: PublishingBehavior = .didSet) where Value: Codable & UserDefaultsStorable {
         self.init(wrappedValue: defaultValue,
                   key,
                   suite: suite,
                   behavior: behavior,
                   writeMapper: Value.writeMapper,
-                  readMapper: Value.readMapper,
-                  migration: migration)
+                  readMapper: Value.readMapper)
     }
 
     /// Initializer
@@ -159,16 +145,13 @@ public extension PDefaults {
     convenience init<T>(
         _ key: String,
         suite: UserDefaults = .standard,
-        behavior: PublishingBehavior = .didSet,
-        migration: Migration<Value>? = nil
-    ) where Value == T?, T: Codable & UserDefaultsStorable {
+        behavior: PublishingBehavior = .didSet) where Value == T?, T: Codable & UserDefaultsStorable {
         self.init(wrappedValue: nil,
                   key,
                   suite: suite,
                   behavior: behavior,
                   writeMapper: Value.writeMapper,
-                  readMapper: Value.readMapper,
-                  migration: migration)
+                  readMapper: Value.readMapper)
     }
 
     /// Constructor catching all type errors to expose compatibility constraints message
@@ -176,8 +159,7 @@ public extension PDefaults {
     // swiftlint:disable:previous line_length
     convenience init(_ key: String,
                      suite: UserDefaults = .standard,
-                     behavior: PublishingBehavior = .didSet,
-                     migration: Migration<Value>? = nil) {
+                     behavior: PublishingBehavior = .didSet) {
         fatalError()
     }
 
@@ -187,8 +169,7 @@ public extension PDefaults {
     convenience init<T>(wrappedValue defaultValue: T,
                         _ key: String,
                         suite: UserDefaults = .standard,
-                        behavior: PublishingBehavior = .didSet,
-                        migration: Migration<Value>? = nil) {
+                        behavior: PublishingBehavior = .didSet) {
         fatalError()
     }
 }

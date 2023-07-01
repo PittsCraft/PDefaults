@@ -185,7 +185,43 @@ You can also mock all instances using the global configuration `mock` property.
 
 ```swift
 PDefaultsConfiguration.mock = true
-``` 
+```
+
+## Migration
+
+You can easily migrate between `PDefaults` instances
+
+```swift
+let appGroupSuite = UserDefaults(suiteName: "com.company.appgroup")!
+
+class Service {
+    @PDefaults("user.name") private var legacyName = "Pitt"
+    @PDefaults("user.first-name", suite: appGroupSuite) var name = "Pete"
+
+    init() {
+        _name.migrate(.from(_legacyName))
+    }
+}
+```
+
+In this case, the migration will be performed only if there's indeed a stored value in the source `PDefaults`.
+Once the migration is performed, the source `PDefaults` is reset, removing its stored value, and guaranteeing that
+the migration won't be performed again.
+
+You can add a mapping to convert your source value:
+
+```swift
+let appGroupSuite = UserDefaults(suiteName: "com.company.appgroup")!
+
+class Service {
+    @PDefaults("count") private var legacyCount = 1
+    @PDefaults("index", suite: appGroupSuite) var index = 0
+
+    init() {
+        _legacyCount.migrate(to: _index, { $0 - 1 })
+    }
+}
+```
 
 ## Performance
 
