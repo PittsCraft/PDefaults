@@ -199,12 +199,12 @@ class Service {
     @PDefaults("user.first-name", suite: appGroupSuite) var name = "Pete"
 
     init() {
-        _name.migrate(.from(_legacyName))
+        _legacyName.migrate(to: _name)
     }
 }
 ```
 
-In this case, the migration will be performed only if there's indeed a stored value in the source `PDefaults`.
+The migration will be performed only if there's indeed a stored value in the source `PDefaults`.
 Once the migration is performed, the source `PDefaults` is reset, removing its stored value, and guaranteeing that
 the migration won't be performed again.
 
@@ -214,11 +214,11 @@ You can add a mapping to convert your source value:
 let appGroupSuite = UserDefaults(suiteName: "com.company.appgroup")!
 
 class Service {
-    @PDefaults("count") private var legacyCount = 1
+    @PDefaults("count") private var legacyCount = Double(1)
     @PDefaults("index", suite: appGroupSuite) var index = 0
 
     init() {
-        _legacyCount.migrate(to: _index, { $0 - 1 })
+        _legacyCount.migrate(to: _index, { Int($0) - 1 })
     }
 }
 ```
