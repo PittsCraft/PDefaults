@@ -1,8 +1,8 @@
 # PDefaults
 
-Provides concise and SwiftUI friendly [UserDefaults](https://developer.apple.com/documentation/foundation/userdefaults) storage with Combine publishing capability.
+Provides concise [UserDefaults](https://developer.apple.com/documentation/foundation/userdefaults) storage with Combine publishing capability.
 
-All regular `UserDefaults` compatible types and `Codable`types are supported (optional or not). 
+All regular `UserDefaults` compatible types and `Codable`types are supported (optional or not).
 
 ## Use
 
@@ -35,7 +35,92 @@ let appGroupSuite = UserDefaults(suiteName: "com.company.appgroup")!
 var name = "Pitt"
 ```
 
-## Behavior
+## Migration
+
+You can easily migrate between `PDefaults` instances
+
+```swift
+let appGroupSuite = UserDefaults(suiteName: "com.company.appgroup")!
+
+class Service {
+    @PDefaults("user.name") private var legacyName = "Pitt"
+    @PDefaults("user.first-name", suite: appGroupSuite) var name = "Pete"
+
+    init() {
+        _legacyName.migrate(to: _name)
+    }
+}
+```
+
+The migration will be performed only if there's indeed a stored value in the source `PDefaults`.
+Once the migration is performed, the source `PDefaults` is reset, removing its stored value, and guaranteeing that
+the migration won't be performed again.
+
+You can add a mapping to convert your source value:
+
+```swift
+let appGroupSuite = UserDefaults(suiteName: "com.company.appgroup")!
+
+class Service {
+    @PDefaults("count") private var legacyCount = Double(1)
+    @PDefaults("index", suite: appGroupSuite) var index = 0
+
+    init() {
+        _legacyCount.migrate(to: _index, { Int($0) - 1 })
+    }
+}
+```
+
+## Mock
+
+You can mock an instance by setting its `mock` property to `true`.
+
+```swift
+@PDefaults("user.name")
+var name = "Pitt"
+
+_name.mock = true
+```
+
+Then:
+- the underlying suite will never be read or written
+- the app group sharing will obviously not work
+
+Note that the instance will ignore the stored value only if the mock flag is set before any access to the wrapped value
+or the projected value.
+
+You can also mock all instances using the global configuration `mock` property.
+
+```swift
+PDefaultsConfiguration.mock = true
+```
+
+## Performance
+
+Designed so that reading the value from `UserDefaults` is performed maximum once per property and app session. 
+Thus there's no `UserDefaults` or decoding overhead when reading frequently. The counterpart is that the last read or written value is always in memory.
+
+## How to expose through a protocol
+
+There's currently no way to expose the publisher and the property in one line but you can still make it very concise and readable.
+
+```swift
+
+protocol ServiceProtocol {
+    var name: String { get set }
+    var namePublisher: AnyPublisher<String, Never> { get }
+}
+
+class Service: ServiceProtocol {
+    @PDefaults("user.name")
+    var name: String = "Pitt"
+    
+    var namePublisher: AnyPublisher<String, Never> { $name }
+}
+
+```
+
+## Extra features and detailed behaviors
 
 ### Default value and `nil`
 
@@ -53,54 +138,6 @@ let cancellable = $name.sink {
 
 name = "François" // Prints François
 name = nil // Prints the default value: Pitt
-```
-
-### `@Published` like behavior
-
-`PDefaults` behaves as `@Published` by default: it publishes any new value before exposing it as its wrapped value.
-
-```swift
-@PDefaults("user.name")
-var name = "Pitt"
-
-let cancellable = $name.sink {
-    print("Published: \($0) - Property: \(name)")
-}
-
-name = "François"
-name = "Hubert"
-```
-
-Prints :
-
-```
-Published: Pitt - Property: Pitt
-Published: François - Property: Pitt
-Published: Hubert - Property: François
-```
-
-### `CurrentValueSubject` like behavior
-
-But you can make it behave like `CurrentValueSubject` using the `behavior` parameter.
-
-```swift
-@PDefaults("user.name", behavior: .didSet)
-var name = "Pitt"
-
-let cancellable = $name.sink {
-    print("Published: \($0) - Property: \(name)")
-}
-
-name = "François"
-name = "Hubert"
-```
-
-Prints :
-
-```
-Published: Pitt - Property: Pitt
-Published: François - Property: François
-Published: Hubert - Property: Hubert
 ```
 
 ### App group sharing
@@ -144,6 +181,55 @@ Then app A prints:
 Published: François
 ```
 
+### Default `CurrentValueSubject` like behavior
+
+`PDefaults` behaves like `CurrentValueSubject` by default.
+
+```swift
+@PDefaults("user.name")
+var name = "Pitt"
+
+let cancellable = $name.sink {
+    print("Published: \($0) - Property: \(name)")
+}
+
+name = "François"
+name = "Hubert"
+```
+
+Prints :
+
+```
+Published: Pitt - Property: Pitt
+Published: François - Property: François
+Published: Hubert - Property: Hubert
+```
+
+### `@Published` like behavior
+
+You can make `PDefaults` behave like `@Published` by setting the `behavior` parameter to `.willSet`.
+It will then publishing any new value before exposing it as its wrapped value.
+
+```swift
+@PDefaults("user.name", behavior: .willSet)
+var name = "Pitt"
+
+let cancellable = $name.sink {
+    print("Published: \($0) - Property: \(name)")
+}
+
+name = "François"
+name = "Hubert"
+```
+
+Prints :
+
+```
+Published: Pitt - Property: Pitt
+Published: François - Property: Pitt
+Published: Hubert - Property: François
+```
+
 ### Multiple instances
 
 **It's an antipattern**. But if you still go with multiple instances:
@@ -162,91 +248,6 @@ and the wrapped values will be the same, still honoring each instance behavior _
 Note that it introduces a small overhead as decoding will occur in both instances when necessary.
 
 Also **it's an antipattern**, you can easily create infinite loops if one's publisher triggers the other's update.
-
-### Mock
-
-You can mock an instance by setting its `mock` property to `true`.
-
-```swift
-@PDefaults("user.name")
-var name = "Pitt"
-
-_name.mock = true
-```
-
-Then:
-- the underlying suite will never be read or written
-- the app group sharing will obviously not work
-
-Note that the instance will ignore the stored value only if the mock flag is set before any access to the wrapped value
-or the projected value.
-
-You can also mock all instances using the global configuration `mock` property.
-
-```swift
-PDefaultsConfiguration.mock = true
-```
-
-## Migration
-
-You can easily migrate between `PDefaults` instances
-
-```swift
-let appGroupSuite = UserDefaults(suiteName: "com.company.appgroup")!
-
-class Service {
-    @PDefaults("user.name") private var legacyName = "Pitt"
-    @PDefaults("user.first-name", suite: appGroupSuite) var name = "Pete"
-
-    init() {
-        _legacyName.migrate(to: _name)
-    }
-}
-```
-
-The migration will be performed only if there's indeed a stored value in the source `PDefaults`.
-Once the migration is performed, the source `PDefaults` is reset, removing its stored value, and guaranteeing that
-the migration won't be performed again.
-
-You can add a mapping to convert your source value:
-
-```swift
-let appGroupSuite = UserDefaults(suiteName: "com.company.appgroup")!
-
-class Service {
-    @PDefaults("count") private var legacyCount = Double(1)
-    @PDefaults("index", suite: appGroupSuite) var index = 0
-
-    init() {
-        _legacyCount.migrate(to: _index, { Int($0) - 1 })
-    }
-}
-```
-
-## Performance
-
-Designed so that reading the value from `UserDefaults` is performed maximum once per property and app session. 
-Thus there's no `UserDefaults` or decoding overhead when reading frequently. The counterpart is that the last read or written value is always in memory.
-
-## How to expose the publisher through a protocol
-
-There's currently no way to expose the publisher and the property in one line but you can still make it very concise and readable.
-
-```swift
-
-protocol ServiceProtocol {
-    var name: String { get set }
-    var namePublisher: AnyPublisher<String, Never> { get }
-}
-
-class Service: ServiceProtocol {
-    @PDefaults("user.name")
-    var name: String = "Pitt"
-    
-    var namePublisher: AnyPublisher<String, Never> { $name }
-}
-
-```
 
 ## Requirements
 
