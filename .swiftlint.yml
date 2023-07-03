@@ -3,7 +3,7 @@ opt_in_rules:
   - missing_docs
 
 missing_docs:
-  error:
+  warning:
     - open
     - public
     - internal

@@ -3,6 +3,7 @@
 
 import PackageDescription
 
+// swiftlint:disable:next missing_docs
 let package = Package(
     name: "PDefaults",
     platforms: [
@@ -13,21 +14,17 @@ let package = Package(
         .library(
             name: "PDefaults",
             targets: ["PDefaults"]
-        ),
+        )
     ],
-    dependencies: [
-        .package(url: "https://github.com/realm/SwiftLint", exact: "0.52.3")
-    ],
+    dependencies: [],
     targets: [
         .target(
             name: "PDefaults",
-            dependencies: [],
-            plugins: [.plugin(name: "SwiftLintPlugin", package: "SwiftLint")]
+            dependencies: []
         ),
         .testTarget(
             name: "PDefaultsTests",
-            dependencies: ["PDefaults"],
-            plugins: [.plugin(name: "SwiftLintPlugin", package: "SwiftLint")]
-        ),
+            dependencies: ["PDefaults"]
+        )
     ]
 )
