@@ -155,7 +155,7 @@ public extension PDefaults {
     }
 
     /// Constructor catching all type errors to expose compatibility constraints message
-    @available(*, unavailable, message: "You can use PDefaults only types that either conform to Codable or are natively handled by UserDefaults")
+    @available(*, unavailable, message: "You have to provide a default value or use an optional type. In the latter case, make sure the type either conforms to Codable or is natively handled by UserDefaults")
     // swiftlint:disable:previous line_length
     convenience init(_ key: String,
                      suite: UserDefaults = .standard,
