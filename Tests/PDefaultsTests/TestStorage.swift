@@ -13,10 +13,6 @@ class TestStorage: XCTestCase {
         PDefaultsConfiguration.mock = false
     }
 
-    override func tearDown() {
-        super.tearDown()
-    }
-
     func testNoStorageWhenNotNeeded() {
         let pDefaults = PDefaults(wrappedValue: Optional.some(1), key, suite: suite)
         XCTAssert(suite.object(forKey: key) == nil, "Storage should not contain a value for key \"\(key)\"")

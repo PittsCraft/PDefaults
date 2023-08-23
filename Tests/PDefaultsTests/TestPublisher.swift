@@ -13,10 +13,6 @@ class TestPublisher: XCTestCase {
         PDefaultsConfiguration.mock = false
     }
 
-    override func tearDown() {
-        super.tearDown()
-    }
-
     func testClosureCalledOnSink() {
         let pdefaults = PDefaults(wrappedValue: 1, key, suite: suite)
         let expectCalled = expectation(description: "PDefaults publisher sink closure is expected to be called on"
