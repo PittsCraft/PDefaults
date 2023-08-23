@@ -17,10 +17,6 @@ class TestMigration: XCTestCase {
         PDefaultsConfiguration.mock = false
     }
 
-    override func tearDown() {
-        super.tearDown()
-    }
-
     func testNominalMigration() {
         let value = 1
         let source = PDefaults<Int?>(wrappedValue: nil, sourceKey)
